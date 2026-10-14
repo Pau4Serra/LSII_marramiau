@@ -1,0 +1,1 @@
+Avoid overly verbose descriptions or unnecessary details. Use the Conventional Commits pattern with no errors.

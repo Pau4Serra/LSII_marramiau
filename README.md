@@ -259,6 +259,33 @@ command
 sudo apt-get remove package // (yt-dlp or ffmpeg)
 ```
 
+### Docker development toolchain
+
+The root `Dockerfile` installs Java 21, Maven 3.9, Node 22, npm, Deno 2, Python 3, the video grabber's pinned Python
+dependencies, and FFmpeg. It installs the frontend's npm packages and prefetches backend Maven dependencies.
+`java`, `mvn`, `node`, `npm`, `deno`, `python3`, `yt-dlp`, `ffmpeg`, and `ffprobe` are available on `PATH` **inside the
+container**. Docker is the only host prerequisite for this workflow; Docker Compose is used if you start PostgreSQL.
+
+Create a local `.env` from `.env.example` and set your Google OAuth credentials if you need sign-in. The image sets
+`ENV_PROTUBE_STORE_DIR=/store`; the named volume below keeps downloaded videos across container runs. From the
+repository root, run:
+
+```bash
+docker build -t protube-tools .
+docker run --rm -v protube-store:/store protube-tools python3 tooling/videoGrabber/main.py --store=/store --id=10 --recreate --videos=/workspace/resources/video_list.txt
+docker run --rm -p 8080:8080 -v protube-store:/store --env-file .env protube-tools mvn -f backend/pom.xml spring-boot:run
+```
+
+In another terminal, start the frontend:
+
+```bash
+docker run --rm -p 5173:5173 protube-tools sh -c "cd frontend && npm run dev -- --host 0.0.0.0"
+```
+
+Open `http://localhost:5173`. The backend uses its default `dev` profile (H2); the existing PostgreSQL service can
+be started separately with `docker compose up -d db` when needed. Rebuild the image after changing project files
+or dependency manifests. To inspect the installed tools, use `docker run --rm -it protube-tools bash`.
+
 ### Backend
 
 Run `ProtubeBackApplication` from the menu on the top right of IntelliJ IDEA. Before that, you should add the

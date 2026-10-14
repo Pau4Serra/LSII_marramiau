@@ -1,0 +1,13 @@
+.git
+.idea
+.run
+backend/.env
+.env.*
+!frontend/.env.development
+!frontend/.env.production
+**/node_modules
+**/dist
+**/target
+**/__pycache__
+**/*.pyc
+store
