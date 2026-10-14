@@ -60,7 +60,11 @@ public class Video {
     )
     private List<Tag> tags = new ArrayList<>();
 
-    @OneToMany(mappedBy = "video")
+    @OneToMany(
+            mappedBy = "video",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<Comment> comments = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
