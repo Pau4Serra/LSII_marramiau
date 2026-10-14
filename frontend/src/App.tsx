@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src="/protube-logo-removebg-preview.png" className="App-logo" alt="logo" />
+        <img src="/protube-logo-no-bg.png" className="App-logo" alt="logo" />
         <ContentApp />
       </header>
     </div>
