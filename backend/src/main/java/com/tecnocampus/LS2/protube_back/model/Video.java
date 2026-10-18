@@ -47,7 +47,7 @@ public class Video {
     private User channel;
 
     @Column(nullable = false)
-    private Integer viewCount = 0;
+    private Long viewCount = 0L;
 
     @Column(nullable = false)
     private Integer likeCount = 0;
