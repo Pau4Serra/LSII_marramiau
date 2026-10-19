@@ -1,41 +1,27 @@
 import './App.css';
+import Navbar from './components/Navbar';
+import VideoGrid from './components/VideoGrid';
 import { useAllVideos } from './useAllVideos';
 
 function App() {
+  const { value, loading } = useAllVideos();
+
+  const handleSearch = (query: string) => {
+    console.log('Searching for:', query);
+  };
+
+  const handleLoginClick = () => {
+    console.log('Login clicked');
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src="/protube-logo-no-bg.png" className="App-logo" alt="logo" />
-        <ContentApp />
-      </header>
+      <Navbar onSearch={handleSearch} onLoginClick={handleLoginClick} />
+      <main className="App-main">
+        <VideoGrid videos={value.length > 0 ? value : undefined} loading={loading === 'loading'} />
+      </main>
     </div>
   );
-}
-
-function ContentApp() {
-  const { loading, message, value } = useAllVideos();
-  switch (loading) {
-    case 'loading':
-      return <div>Loading...</div>;
-    case 'error':
-      return (
-        <div>
-          <h3>Error</h3> <p>{message}</p>
-        </div>
-      );
-    case 'success':
-      return (
-        <>
-          <strong>Videos availables:</strong>
-          <ul>
-            {value.map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
-        </>
-      );
-  }
-  return <div>Idle...</div>;
 }
 
 export default App;
