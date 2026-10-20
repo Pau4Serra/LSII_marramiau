@@ -1,19 +1,21 @@
-import { act, render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-
 import VideoGrid from '../VideoGrid';
-import fetchMock from 'jest-fetch-mock';
 
-describe('this component', () => {
-  beforeEach(() => {
-    fetchMock.resetMocks(); // Reset mocks before each test
+describe('VideoGrid component', () => {
+  it('renders default placeholder cards when no videos provided', () => {
+    const { container } = render(<VideoGrid />);
+    const placeholders = container.querySelectorAll('.video-card--placeholder');
+    expect(placeholders.length).toBe(9);
   });
 
-  it('renders correctly', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify(['video 1 test', 'video 2 test']));
-    const asFragment = await act(async () => {
-      return render(<VideoGrid />).asFragment;
-    });
-    expect(asFragment()).toMatchSnapshot();
+  it('renders video cards when videos list is provided', () => {
+    const mockVideos = [
+      { id: 1, title: 'Video 1 test' },
+      { id: 2, title: 'Video 2 test' },
+    ];
+    render(<VideoGrid videos={mockVideos} />);
+    expect(screen.getByText('Video 1 test')).toBeInTheDocument();
+    expect(screen.getByText('Video 2 test')).toBeInTheDocument();
   });
 });

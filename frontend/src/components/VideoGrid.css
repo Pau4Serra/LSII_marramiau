@@ -1,0 +1,40 @@
+.video-grid-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 36px 48px 36px;
+  box-sizing: border-box;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 24px;
+  row-gap: 36px;
+  width: 100%;
+}
+
+/* Tablet: 2 columns */
+@media (max-width: 860px) {
+  .video-grid-container {
+    padding: 16px 20px 40px 20px;
+  }
+
+  .video-grid {
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 16px;
+    row-gap: 28px;
+  }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 520px) {
+  .video-grid-container {
+    padding: 12px 16px 32px 16px;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr;
+    row-gap: 24px;
+  }
+}
