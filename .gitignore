@@ -2,3 +2,4 @@
 .idea/
 backend/.env
 .env
+.run

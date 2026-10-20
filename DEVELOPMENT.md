@@ -43,6 +43,7 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 | Variable                           | Needed for              | Description                                                                                      |
 |------------------------------------|-------------------------|--------------------------------------------------------------------------------------------------|
 | `ENV_PROTUBE_STORE_DIR`            | always                  | Absolute path of the video store folder. **End it with a path separator** (`/` or `\`) — it is used as a `file:` prefix to serve `/media/**`. |
+| `ENV_PROTUBE_STORE_SOURCE`         | optional                | Stable dataset name used to derive public video UUIDs (default: `initial-catalog`). Keep it when moving the store; use a new name for a replacement dataset whose numeric IDs are reused. |
 | `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
 | `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
 | `ENV_PROTUBE_DB_USER`              | `prod` profile          | Database user (use `sa` with the default H2 datasource)                                          |
