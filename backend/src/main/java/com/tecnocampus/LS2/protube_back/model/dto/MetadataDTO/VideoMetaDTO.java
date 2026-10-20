@@ -1,4 +1,4 @@
-package com.tecnocampus.LS2.protube_back.model.MetadataDTO;
+package com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO;
 
 import java.util.List;
 

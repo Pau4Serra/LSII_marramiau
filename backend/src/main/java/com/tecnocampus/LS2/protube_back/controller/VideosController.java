@@ -1,6 +1,6 @@
 package com.tecnocampus.LS2.protube_back.controller;
 
-import com.tecnocampus.LS2.protube_back.model.ResponseDTO.PublicVideoResponseDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import com.tecnocampus.LS2.protube_back.services.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

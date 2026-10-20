@@ -3,9 +3,9 @@ package com.tecnocampus.LS2.protube_back.services;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.tecnocampus.LS2.protube_back.model.Category;
-import com.tecnocampus.LS2.protube_back.model.MetadataDTO.VideoMetaDTO;
-import com.tecnocampus.LS2.protube_back.model.MetadataDTO.VideoMetadataDTO;
-import com.tecnocampus.LS2.protube_back.model.ResponseDTO.PublicVideoResponseDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetaDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetadataDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

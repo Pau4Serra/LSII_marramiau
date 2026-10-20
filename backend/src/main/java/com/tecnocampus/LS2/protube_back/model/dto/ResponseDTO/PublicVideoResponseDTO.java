@@ -1,4 +1,4 @@
-package com.tecnocampus.LS2.protube_back.model.ResponseDTO;
+package com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO;
 
 import com.tecnocampus.LS2.protube_back.model.Category;
 
