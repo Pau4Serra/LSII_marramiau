@@ -1,25 +1,24 @@
-import { useState, useEffect } from 'react';
-import { getEnv } from '../utils/Env';
+import { Video } from '../types/video';
+import VideoCard from './VideoCard';
+import './VideoGrid.css';
 
-const VideoGrid = () => {
-  const [someData, setSomeData] = useState([]);
+export interface VideoGridProps {
+  videos?: Video[];
+  placeholderCount?: number;
+  onVideoClick?: (video: Video) => void;
+}
 
-  useEffect(() => {
-    fetch(getEnv().API_BASE_URL + '/someEndpoint')
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setSomeData(data);
-      });
-  }, []);
+export const VideoGrid = ({ videos, placeholderCount = 9, onVideoClick }: VideoGridProps) => {
+  const hasVideos = Array.isArray(videos) && videos.length > 0;
 
   return (
-    <ul className="row g-4">
-      {someData?.map((entity) => (
-        <li key={entity}>{entity}</li>
-      ))}
-    </ul>
+    <section className="video-grid-container" aria-label="Videos Grid">
+      <div className="video-grid">
+        {hasVideos
+          ? videos.map((video) => <VideoCard key={video.id} video={video} onClick={onVideoClick} />)
+          : Array.from({ length: placeholderCount }).map((_, index) => <VideoCard key={`placeholder-${index}`} />)}
+      </div>
+    </section>
   );
 };
 

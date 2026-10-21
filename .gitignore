@@ -1,2 +1,5 @@
 .vscode/
 .idea/
+backend/.env
+.env
+.run

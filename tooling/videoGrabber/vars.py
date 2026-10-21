@@ -7,11 +7,10 @@ If these programs cannot be located through your PATH environment variable, eith
 Remember you can download the yt-dlp matching your system here:
 https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#release-files
 
-This has been added to the gitignore, so each team member can have an specific configuration
+The Docker toolchain installs these commands on PATH.
 """
 
 
-# Here you have your own path
-YT_DLP_BIN="/home/myuser/yt-dlp_linux"
+YT_DLP_BIN="yt-dlp"
 FFMPEG_BIN="ffmpeg"
 FFPROBE_BIN="ffprobe"
