@@ -6,8 +6,28 @@ interface VideoCardProps {
   onClick?: (video: Video) => void;
 }
 
+export const formatViews = (views?: number | string): string => {
+  if (views === undefined || views === null || views === '') return '';
+  const num = typeof views === 'string' ? Number(views) : views;
+  if (isNaN(num)) return String(views);
+
+    if (num >= 1_000_000_000) {
+      const formatted = (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '');
+      return `${formatted} B`;
+    }
+  if (num >= 1_000_000) {
+    const formatted = (num / 1_000_000).toFixed(1).replace(/\.0$/, '');
+    return `${formatted} M`;
+  }
+  if (num >= 1_000) {
+    const formatted = (num / 1_000).toFixed(1).replace(/\.0$/, '');
+    return `${formatted} K`;
+  }
+  return String(num);
+};
+
 export const VideoCard = ({ video, onClick }: VideoCardProps) => {
-  const isPlaceholder = !video || (!video.title && !video.thumbnailUrl);
+  const isPlaceholder = !video || (!video.title && !video.thumbnail);
 
   if (isPlaceholder) {
     return (
@@ -33,8 +53,8 @@ export const VideoCard = ({ video, onClick }: VideoCardProps) => {
       }}
     >
       <div className="video-thumbnail-wrapper">
-        {video.thumbnailUrl ? (
-          <img src={video.thumbnailUrl} alt={video.title} className="video-thumbnail-img" />
+        {video.thumbnail ? (
+          <img src={getThumbnailSrc(video.thumbnail)} alt={video.title} className="video-thumbnail-img" />
         ) : (
           <div className="video-thumbnail-fallback" />
         )}
@@ -43,10 +63,12 @@ export const VideoCard = ({ video, onClick }: VideoCardProps) => {
         <h3 className="video-title" title={video.title}>
           {video.title}
         </h3>
-        {(video.channel || video.views) && (
+        {(video.channelName || video.viewsCount !== undefined) && (
           <div className="video-metadata">
-            {video.channel && <span className="video-channel">{video.channel}</span>}
-            {video.views !== undefined && <span className="video-views">{video.views} vistas</span>}
+            {video.channelName && <span className="video-channel">{video.channelName}</span>}
+            {video.viewsCount !== undefined && (
+              <span className="video-views">{formatViews(video.viewsCount)} visualitzacions</span>
+            )}
           </div>
         )}
       </div>
@@ -55,3 +77,10 @@ export const VideoCard = ({ video, onClick }: VideoCardProps) => {
 };
 
 export default VideoCard;
+
+const getThumbnailSrc = (thumb?: string) => {
+  if (!thumb) return undefined;
+  if (thumb.startsWith('http://') || thumb.startsWith('https://')) return thumb;
+  if (thumb.startsWith('/media/')) return `http://localhost:8080${thumb}`;
+  return `http://localhost:8080/media/${thumb}`;
+};
