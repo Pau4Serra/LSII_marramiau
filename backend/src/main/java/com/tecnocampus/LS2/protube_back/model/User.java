@@ -1,6 +1,7 @@
 package com.tecnocampus.LS2.protube_back.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +15,6 @@ import java.util.UUID;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
 public class User {
 
     @Id
@@ -58,5 +58,17 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = Instant.now();
+    }
+
+    public User() {
+
+    }
+
+    public User(String googleSubject, String email, String name, String lastName, String pictureUrl) {
+        this.googleSubject = googleSubject;
+        this.email = email;
+        this.name = name;
+        this.lastname = lastName;
+        this.pictureUrl = pictureUrl;
     }
 }
