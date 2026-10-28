@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .requestMatchers("/",
                         "/error",
                         "/public/**",
+                        "/media/**",
                         "/auth/login",
                         "/api/videos",
                         "/api/videos/{videoId}",
