@@ -7,8 +7,6 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-  profiles:
-    active: "@spring.profiles.active@"
   security:
     oauth2:
       client:
@@ -30,6 +28,8 @@ spring:
             issuer-uri: "https://accounts.google.com"
 
 pro_tube:
+  auth:
+    success-url: ${ENV_PROTUBE_FRONTEND_URL:/}
   store:
     dir: "${ENV_PROTUBE_STORE_DIR}"
     source: "${ENV_PROTUBE_STORE_SOURCE:initial-catalog}"

@@ -11,6 +11,8 @@ spring:
     password: "${ENV_PROTUBE_DB_PASS}"
     driver-class-name: org.postgresql.Driver
   jpa:
+    hibernate:
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   mvc:
     static-path-pattern: /media/**
