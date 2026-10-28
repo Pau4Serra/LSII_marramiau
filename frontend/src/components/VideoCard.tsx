@@ -1,4 +1,5 @@
 import { Video } from '../types/video';
+import { getEnv } from '../utils/Env';
 import './VideoCard.css';
 
 interface VideoCardProps {
@@ -102,6 +103,5 @@ export default VideoCard;
 const getThumbnailSrc = (thumb?: string) => {
   if (!thumb) return undefined;
   if (thumb.startsWith('http://') || thumb.startsWith('https://')) return thumb;
-  if (thumb.startsWith('/media/')) return `http://localhost:8080${thumb}`;
-  return `http://localhost:8080/media/${thumb}`;
+  return `${getEnv().MEDIA_BASE_URL}${thumb.replace(/^\/media/, '')}`;
 };
