@@ -6,15 +6,33 @@ interface VideoCardProps {
   onClick?: (video: Video) => void;
 }
 
+export const formatDuration = (seconds?: number | string): string => {
+  if (seconds === undefined || seconds === null || seconds === '') return '';
+  const num = typeof seconds === 'string' ? Number(seconds) : seconds;
+  if (isNaN(num) || num < 0) return '';
+
+  const totalSeconds = Math.floor(num);
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  const formattedSecs = secs.toString().padStart(2, '0');
+
+  if (hrs > 0) {
+    const formattedMins = mins.toString().padStart(2, '0');
+    return `${hrs}:${formattedMins}:${formattedSecs}`;
+  }
+  return `${mins}:${formattedSecs}`;
+};
+
 export const formatViews = (views?: number | string): string => {
   if (views === undefined || views === null || views === '') return '';
   const num = typeof views === 'string' ? Number(views) : views;
   if (isNaN(num)) return String(views);
 
-    if (num >= 1_000_000_000) {
-      const formatted = (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '');
-      return `${formatted} B`;
-    }
+  if (num >= 1_000_000_000) {
+    const formatted = (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '');
+    return `${formatted} B`;
+  }
   if (num >= 1_000_000) {
     const formatted = (num / 1_000_000).toFixed(1).replace(/\.0$/, '');
     return `${formatted} M`;
@@ -40,6 +58,8 @@ export const VideoCard = ({ video, onClick }: VideoCardProps) => {
     );
   }
 
+  const durationText = formatDuration(video.duration);
+
   return (
     <div
       className="video-card"
@@ -58,6 +78,7 @@ export const VideoCard = ({ video, onClick }: VideoCardProps) => {
         ) : (
           <div className="video-thumbnail-fallback" />
         )}
+        {durationText && <span className="video-duration">{durationText}</span>}
       </div>
       <div className="video-details">
         <h3 className="video-title" title={video.title}>

@@ -5,4 +5,5 @@ export interface Video {
   channelName?: string;
   viewsCount?: number | string;
   createdAt?: string;
+  duration?: number | string;
 }
