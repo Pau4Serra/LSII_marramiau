@@ -1,6 +1,5 @@
 package com.tecnocampus.LS2.protube_back.security;
 
-import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.UserDTO;
 import com.tecnocampus.LS2.protube_back.services.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

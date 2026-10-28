@@ -1,7 +1,7 @@
 package com.tecnocampus.LS2.protube_back.services;
 
 import com.tecnocampus.LS2.protube_back.model.User;
-import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.UserDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.UserResponseDTO;
 import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,16 +16,16 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserDTO update(UUID id, UserDTO userDTO) {
+    public UserResponseDTO update(UUID id, UserResponseDTO userResponseDTO) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null) {
-            user.setName(userDTO.name());
-            user.setLastname(userDTO.lastname());
+            user.setName(userResponseDTO.name());
+            user.setLastname(userResponseDTO.lastname());
             userRepository.save(user);
         } else {
             throw new NullPointerException("This user doesn't exist");
         }
-        return new UserDTO(
+        return new UserResponseDTO(
                 id,
                 user.getGoogleSubject(),
                 user.getEmail(),
