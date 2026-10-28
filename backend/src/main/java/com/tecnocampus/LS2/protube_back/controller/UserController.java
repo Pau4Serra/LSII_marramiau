@@ -1,9 +1,12 @@
 package com.tecnocampus.LS2.protube_back.controller;
 
 
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.UserDTO;
 import com.tecnocampus.LS2.protube_back.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -12,18 +15,8 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @GetMapping("/login")
-    public void login() {
-        userService.login();
-    }
-
-    @GetMapping("/logout")
-    public void logout() {
-        userService.logout();
-    }
-
     @PatchMapping("/{userId}")
-    public void updateUser(@PathVariable String userId) {
-        userService.update();
+    public UserDTO updateUser(@PathVariable UUID userId, @RequestBody UserDTO userDTO) {
+        return userService.update(userId, userDTO);
     }
 }

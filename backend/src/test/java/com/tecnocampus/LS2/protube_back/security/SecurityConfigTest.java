@@ -1,8 +1,7 @@
 package com.tecnocampus.LS2.protube_back.security;
 
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -27,19 +26,22 @@ class SecurityConfigTest {
     @Mock
     private OAuth2LoginConfigurer<HttpSecurity> oauth2;
 
+    @Mock
+    private GoogleLoginSuccessHandler googleLoginSuccessHandler;
+
     @Captor
     private ArgumentCaptor<Customizer<OAuth2LoginConfigurer<HttpSecurity>>> oauth2Customizer;
 
-    @ParameterizedTest
-    @ValueSource(strings = {"http://localhost:5173/", "/", "https://protube.example/"})
-    void redirectsToConfiguredFrontendAfterLogin(String successUrl) throws Exception {
+    @Test
+    void registersGoogleLoginSuccessHandler() throws Exception {
         DefaultSecurityFilterChain filterChain = mock(DefaultSecurityFilterChain.class);
         when(http.build()).thenReturn(filterChain);
 
-        assertSame(filterChain, new SecurityConfig().securityFilterChain(http, successUrl));
+        assertSame(filterChain,
+                new SecurityConfig().securityFilterChain(http, googleLoginSuccessHandler));
 
         verify(http).oauth2Login(oauth2Customizer.capture());
         oauth2Customizer.getValue().customize(oauth2);
-        verify(oauth2).defaultSuccessUrl(successUrl, true);
+        verify(oauth2).successHandler(googleLoginSuccessHandler);
     }
 }
