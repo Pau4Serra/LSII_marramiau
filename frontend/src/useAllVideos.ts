@@ -14,19 +14,8 @@ interface ApiVideo {
   channelName?: string;
   viewsCount?: number | string;
   uploadDate?: string;
+  duration?: number | string;
 }
-
-const resolveMediaUrl = (url?: string) => {
-  if (!url) {
-    return undefined;
-  }
-
-  if (url.startsWith('http')) {
-    return url;
-  }
-
-  return `${getEnv().MEDIA_BASE_URL}${url.replace(/^\/media/, '')}`;
-};
 
 export function useAllVideos() {
   const [value, setValue] = useState<Video[]>([]);
@@ -47,10 +36,11 @@ export function useAllVideos() {
             return {
               id: item.id,
               title: item.title,
-              thumbnailUrl: resolveMediaUrl(item.thumbnail),
-              channel: item.channelName,
-              views: item.viewsCount,
+              thumbnail: item.thumbnail,
+              channelName: item.channelName,
+              viewsCount: item.viewsCount,
               createdAt: item.uploadDate,
+              duration: item.duration,
             };
           });
           setValue(normalized);
