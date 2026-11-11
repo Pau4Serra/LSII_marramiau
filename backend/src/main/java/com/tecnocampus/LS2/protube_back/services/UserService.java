@@ -16,6 +16,21 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public UserResponseDTO getMe(String googleSubject) {
+        User user = userRepository.findUserByGoogleSubject(googleSubject);
+        if (user == null) {
+            throw new NullPointerException("This user doesn't exist");
+        }
+        return new UserResponseDTO(
+                user.getId(),
+                user.getGoogleSubject(),
+                user.getEmail(),
+                user.getName(),
+                user.getLastname(),
+                user.getPictureUrl()
+        );
+    }
+
     public UserResponseDTO update(UUID id, UserResponseDTO userResponseDTO) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null) {
