@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import VideoCard from '../components/VideoCard';
 import { getEnv } from '../utils/Env';
 import { useAllVideos } from '../useAllVideos';
+import { User } from '../types/user';
 import './VideoPage.css';
 
 interface VideoDetails {
@@ -21,6 +22,8 @@ interface VideoDetails {
 
 interface VideoPageProps {
   videoId: string;
+  user?: User | null;
+  onLoginClick?: () => void;
 }
 
 const resolveMediaUrl = (url: string) => {
@@ -43,7 +46,7 @@ const formatCount = (count: number) => {
   return count.toString();
 };
 
-export default function VideoPage({ videoId }: VideoPageProps) {
+export default function VideoPage({ videoId, user, onLoginClick }: VideoPageProps) {
   const [video, setVideo] = useState<VideoDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,9 +81,7 @@ export default function VideoPage({ videoId }: VideoPageProps) {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const recommendations = videos
-    .filter((candidate) => String(candidate.id) !== videoId)
-    .slice(0, 20);
+  const recommendations = videos.filter((candidate) => String(candidate.id) !== videoId).slice(0, 20);
 
   const toggleLike = () => {
     const nextLiked = !liked;
@@ -90,7 +91,7 @@ export default function VideoPage({ videoId }: VideoPageProps) {
 
   return (
     <>
-      <Navbar />
+      <Navbar user={user} onLoginClick={onLoginClick} />
       <main className="video-page">
         <button type="button" className="video-page-back" onClick={goHome}>
           Back to videos
@@ -121,12 +122,7 @@ export default function VideoPage({ videoId }: VideoPageProps) {
                     aria-label={liked ? 'Unlike video' : 'Like video'}
                     aria-pressed={liked}
                   >
-                    <svg
-                      className="like-icon"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
+                    <svg className="like-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path d="M12 21S2.5 15.65 2.5 9.5C2.5 6.5 4.5 4 7 4c2.2 0 3.8 1.2 5 3 1.2-1.8 2.8-3 5-3 2.5 0 4.5 2.5 4.5 5.5C21.5 15.65 12 21 12 21Z" />
                     </svg>
                     <span>{formatCount(likeCount)}</span>
@@ -137,9 +133,7 @@ export default function VideoPage({ videoId }: VideoPageProps) {
               <details className="video-description">
                 <summary>
                   <span>Description</span>
-                  <span className="video-description-preview">
-                    {video.description || 'No description available.'}
-                  </span>
+                  <span className="video-description-preview">{video.description || 'No description available.'}</span>
                 </summary>
                 <p>{video.description || 'No description available.'}</p>
               </details>
@@ -149,7 +143,11 @@ export default function VideoPage({ videoId }: VideoPageProps) {
               <h2>More videos</h2>
               <div className="video-recommendation-list">
                 {recommendations.map((recommendedVideo) => (
-                  <VideoCard key={recommendedVideo.id} video={recommendedVideo} onClick={(selected) => openVideo(selected.id)} />
+                  <VideoCard
+                    key={recommendedVideo.id}
+                    video={recommendedVideo}
+                    onClick={(selected) => openVideo(selected.id)}
+                  />
                 ))}
               </div>
             </aside>
