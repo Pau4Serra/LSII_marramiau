@@ -27,7 +27,8 @@ public class UserService {
                 user.getEmail(),
                 user.getName(),
                 user.getLastname(),
-                user.getPictureUrl()
+                user.getPictureUrl(),
+                user.isDark_mode()
         );
     }
 
