@@ -43,7 +43,8 @@ public class GoogleLoginSuccessHandler
                 googleUser.getEmail(),
                 googleUser.getGivenName(),
                 googleUser.getFamilyName(),
-                googleUser.getPicture()
+                googleUser.getPicture(),
+                false
         );
 
         // Redirigeix al frontend després de gestionar l'usuari.
