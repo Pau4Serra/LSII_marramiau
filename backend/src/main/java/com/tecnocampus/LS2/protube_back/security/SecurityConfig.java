@@ -22,7 +22,7 @@ public class SecurityConfig {
                         "/error",
                         "/public/**",
                         "/media/**",
-                        "/auth/login",
+                        "/api/auth/login",
                         "/api/videos",
                         "/api/videos/{videoId}",
                         "/h2-console",
