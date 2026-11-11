@@ -1,5 +1,6 @@
 package com.tecnocampus.LS2.protube_back.services;
 
+import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -8,7 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class VideoServiceTest {
 
-    VideoService videoService = new VideoService();
+    VideoRepository videoRepository;
+    VideoService videoService = new VideoService(videoRepository);
 
 
     @Test

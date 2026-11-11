@@ -23,6 +23,7 @@ public class SecurityConfig {
                         "/public/**",
                         "/auth/login",
                         "/api/videos",
+                        "/api/videos/search/{query}",
                         "/api/videos/{videoId}",
                         "/h2-console",
                         "/h2-console/**")
