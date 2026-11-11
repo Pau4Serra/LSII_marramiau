@@ -26,4 +26,9 @@ public class UserController {
     public UserResponseDTO updateUser(@PathVariable UUID userId, @RequestBody UserResponseDTO userResponseDTO) {
         return userService.update(userId, userResponseDTO);
     }
+
+    @PatchMapping("/{userId}/darkMode")
+    public void changeDarkMode(@PathVariable UUID userId) {
+        userService.changeDarkMode(userId);
+    }
 }

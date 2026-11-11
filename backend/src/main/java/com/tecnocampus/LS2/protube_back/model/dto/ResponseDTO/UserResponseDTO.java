@@ -8,5 +8,6 @@ public record UserResponseDTO(
     String email,
     String name,
     String lastname,
-    String pictureUrl
+    String pictureUrl,
+    boolean dark_mode
 ) {}

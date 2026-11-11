@@ -45,6 +45,9 @@ public class User {
     @Column(name = "removed_at")
     private Instant removedAt;
 
+    @Column(name = "dark_mode")
+    private boolean dark_mode;
+
     @OneToMany(mappedBy = "channel")
     private List<Video> videos = new ArrayList<>();
 
@@ -64,11 +67,12 @@ public class User {
 
     }
 
-    public User(String googleSubject, String email, String name, String lastName, String pictureUrl) {
+    public User(String googleSubject, String email, String name, String lastName, String pictureUrl, boolean dark_mode) {
         this.googleSubject = googleSubject;
         this.email = email;
         this.name = name;
         this.lastname = lastName;
         this.pictureUrl = pictureUrl;
+        this.dark_mode = dark_mode;
     }
 }

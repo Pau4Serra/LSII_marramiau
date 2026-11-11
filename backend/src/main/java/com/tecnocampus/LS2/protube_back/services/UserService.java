@@ -46,11 +46,12 @@ public class UserService {
                 user.getEmail(),
                 user.getName(),
                 user.getLastname(),
-                user.getPictureUrl()
+                user.getPictureUrl(),
+                user.isDark_mode()
         );
     }
 
-    public void findOrCreateFromGoogle(String sub, String email, String name, String familyName, String picture) {
+    public void findOrCreateFromGoogle(String sub, String email, String name, String familyName, String picture, boolean dark_mode) {
         User user = userRepository.findUserByGoogleSubject(sub);
         if(user == null) {
             User newUser = new User(
@@ -58,7 +59,8 @@ public class UserService {
                     email,
                     name,
                     familyName,
-                    picture
+                    picture,
+                    dark_mode
             );
             userRepository.save(newUser);
         } else {
@@ -68,6 +70,16 @@ public class UserService {
             user.setLastname(familyName);
             user.setPictureUrl(picture);
             userRepository.save(user);
+        }
+    }
+
+    public void changeDarkMode(UUID userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            user.setDark_mode(!user.isDark_mode());
+            userRepository.save(user);
+        } else {
+            throw new NullPointerException("This user doesn't exist");
         }
     }
 }
