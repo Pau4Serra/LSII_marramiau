@@ -36,30 +36,22 @@ public class VideosController {
         return ResponseEntity.ok(videoService.findVideosByName(query));
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<UUID> createVideo(
-            @RequestBody CreateVideoRequestDTO request,
-            @AuthenticationPrincipal OidcUser user) {
-
-        UUID id = videoService.createVideo(
-                request, user.getSubject()
-        );
-
-        return ResponseEntity.status(201).body(id);
-    }
-
     @PostMapping(
-            value = "/{id}/file",
+            value = "/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<Void> uploadVideoFile(
-            @PathVariable UUID id,
-            @RequestParam("file") MultipartFile file,
+    public ResponseEntity<PublicVideoResponseDTO> uploadVideo(
+            @RequestPart("metadata") CreateVideoRequestDTO metadata,
+            @RequestPart("file") MultipartFile file,
             @AuthenticationPrincipal OidcUser user) {
 
-        videoService.uploadVideoFile(id, file, user);
+        PublicVideoResponseDTO response = videoService.uploadVideo(
+                metadata,
+                file,
+                user
+        );
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(201).body(response);
     }
 
     @PatchMapping("/{videoId}")

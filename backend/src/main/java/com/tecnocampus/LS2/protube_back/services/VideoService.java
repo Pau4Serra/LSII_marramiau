@@ -1,25 +1,20 @@
+
 package com.tecnocampus.LS2.protube_back.services;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.tecnocampus.LS2.protube_back.model.Category;
+import com.tecnocampus.LS2.protube_back.model.*;
 import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO;
-import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.VideoMetadataRequestDTO;
-import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetadataDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
+import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
-import org.springframework.beans.factory.annotation.Value;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,113 +23,129 @@ import java.util.UUID;
 public class VideoService {
 
     private final VideoRepository videoRepository;
+    private final UserRepository userRepository;
+    private final OciMediaClientService ociMediaClientService;
 
-    public VideoService(VideoRepository videoRepository) {
+    public VideoService(
+            VideoRepository videoRepository,
+            UserRepository userRepository,
+            OciMediaClientService ociMediaClientService) {
+
         this.videoRepository = videoRepository;
+        this.userRepository = userRepository;
+        this.ociMediaClientService = ociMediaClientService;
     }
 
-    @Value("${pro_tube.store.dir}")
-    private String videoSource;
+    // UPLOAD VIDEO
 
-    @Value("${pro_tube.store.source}")
-    private String metadataSource;
+    @Transactional
+    public PublicVideoResponseDTO uploadVideo(
+            CreateVideoRequestDTO request,
+            MultipartFile file,
+            OidcUser principal) {
 
-    private final Gson gson = new Gson();
-
-    public List<PublicVideoResponseDTO> getVideos() {
-        List<PublicVideoResponseDTO> videos = new ArrayList<>();
-        for (File file : getMetadataFiles()) {
-            videos.add(mapToResponse(readMetadata(file)));
-        }
-
-        return videos;
-    }
-
-    private File[] getMetadataFiles() {
-        if (videoSource == null || videoSource.isBlank()) {
-            throw new IllegalStateException("Video store directory is not configured");
-        }
-
-        File directory = new File(videoSource);
-        if (!directory.isDirectory()) {
-            throw new IllegalStateException("Video store is not a directory: " + directory.getAbsolutePath());
-        }
-
-        File[] files = directory.listFiles(file -> file.isFile() && file.getName().endsWith(".json"));
-        if (files == null) {
-            throw new IllegalStateException("Could not list video store directory: " + directory.getAbsolutePath());
-        }
-
-        return files;
-    }
-
-    private VideoMetadataDTO readMetadata(File file) {
-        try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-            VideoMetadataDTO metadata = gson.fromJson(reader, VideoMetadataDTO.class);
-            if (metadata == null || metadata.meta() == null) {
-                throw new IllegalStateException("Video metadata is empty or missing 'meta': " + file.getAbsolutePath());
-            }
-            return metadata;
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not read video metadata file: " + file.getAbsolutePath(), e);
-        } catch (JsonParseException e) {
-            throw new IllegalStateException("Invalid video metadata JSON: " + file.getAbsolutePath(), e);
-        }
-    }
-
-    private PublicVideoResponseDTO mapToResponse(VideoMetadataDTO metadata) {
-        VideoMetadataRequestDTO meta = metadata.meta();
-
-        return new PublicVideoResponseDTO(
-                metadata.toPublicId(metadataSource),
-                metadata.title(),
-                Math.toIntExact(Math.round(metadata.duration())),
-                meta.description(),
-                "/media/" + metadata.id() + ".webp",
-                meta.channel(),
-                meta.view_count() == null ? 0L : meta.view_count(),
-                meta.like_count(),
-                Category.fromMetadataList(meta.categories()),
-                Instant.ofEpochSecond(metadata.timestamp()),
-                "/media/" + metadata.id() + ".mp4"
+        User user = userRepository.findUserByGoogleSubject(
+                principal.getSubject()
         );
-    }
 
-    public Optional<PublicVideoResponseDTO> findVideoById(UUID videoId) {
-        for (File file : getMetadataFiles()) {
-            VideoMetadataDTO metadata = readMetadata(file);
-            if (metadata.toPublicId(metadataSource).equals(videoId)) {
-                return Optional.of(mapToResponse(metadata));
-            }
+        if (user == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "User not found");
         }
 
-        return Optional.empty();
+        // Upload to OCI
+        OciMediaClientService.UploadResponse uploaded =
+                ociMediaClientService.upload(
+                        file,
+                        principal.getIdToken().getTokenValue()
+                );
+
+        // Build Video entity and save to database
+        Video video = new Video();
+
+        video.setTitle(request.title());
+        video.setDescription(request.meta().description());
+        video.setDuration(request.duration());
+        video.setThumbnail(request.thumbnail());
+
+        video.setCategories(
+                Category.fromMetadataList(
+                        request.meta().categories()
+                )
+        );
+
+        video.setChannel(user);
+        video.setVideoUrl(uploaded.url());
+        video.setStatus(VideoStatus.ACTIVE);
+        video.setUploadDate(Instant.now());
+        video.setViewCount(0L);
+        video.setLikeCount(0);
+
+        // Save to active videos database
+        Video saved = videoRepository.save(video);
+
+        return mapToResponse(saved);
     }
 
-    public List<PublicVideoResponseDTO> findVideosByName(String query) {
-        List<PublicVideoResponseDTO> matches = new ArrayList<>();
+    // GET ALL VIDEOS
+
+    @Transactional(readOnly = true)
+    public List<PublicVideoResponseDTO> getVideos() {
+
+        return videoRepository
+                .findByStatus(VideoStatus.ACTIVE)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    // GET VIDEO BY ID
+
+    @Transactional(readOnly = true)
+    public Optional<PublicVideoResponseDTO> findVideoById(
+            UUID videoId) {
+
+        return videoRepository
+                .findByIdAndStatus(
+                        videoId, VideoStatus.ACTIVE)
+                .map(this::mapToResponse);
+    }
+
+    // SEARCH VIDEOS BY TITLE
+
+    @Transactional(readOnly = true)
+    public List<PublicVideoResponseDTO> findVideosByName(
+            String query) {
 
         if (query == null || query.isBlank()) {
             return getVideos();
         }
 
-        String search = query.trim().toLowerCase();
-
-        for (PublicVideoResponseDTO video : getVideos()) {
-            if (video.title().toLowerCase().contains(search)) {
-                matches.add(video);
-            }
-        }
-
-        return matches;
+        return videoRepository
+                .findByTitleContainingIgnoreCaseAndStatus(
+                        query.trim(),
+                        VideoStatus.ACTIVE
+                )
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public UUID createVideo(CreateVideoRequestDTO request, String subject) {
-        // TODO: Implement video creation logic
-        return null;
-    }
+    // ENTITY TO RESPONSE DTO
 
-    public void uploadVideoFile(UUID id, MultipartFile file, OidcUser user) {
-        // TODO: Implement video file upload logic
+    private PublicVideoResponseDTO mapToResponse(Video video) {
+        return new PublicVideoResponseDTO(
+                video.getId(),
+                video.getTitle(),
+                video.getDuration(),
+                video.getDescription(),
+                video.getThumbnail(),
+                video.getChannel().getName(),
+                video.getViewCount(),
+                video.getLikeCount(),
+                video.getCategories(),
+                video.getUploadDate(),
+                video.getVideoUrl()
+        );
     }
 }

@@ -6,7 +6,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 100MB
-      max-request-size: 100MB
+      max-request-size: 110MB
   security:
     oauth2:
       client:
@@ -33,3 +33,5 @@ pro_tube:
   store:
     dir: "${ENV_PROTUBE_STORE_DIR}"
     source: "${ENV_PROTUBE_STORE_SOURCE:initial-catalog}"
+  media:
+    base-url: ${ENV_PROTUBE_MEDIA_BASE_URL:https://marramiau-protube.duckdns.org}
