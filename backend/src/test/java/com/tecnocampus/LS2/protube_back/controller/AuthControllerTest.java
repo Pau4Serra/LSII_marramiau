@@ -14,7 +14,7 @@ class AuthControllerTest {
     void loginRedirectsToGoogleAuthorizationEndpoint() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AuthController()).build();
 
-        mockMvc.perform(post("/auth/login"))
+        mockMvc.perform(post("/api/auth/login"))
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("/oauth2/authorization/google"));
     }
