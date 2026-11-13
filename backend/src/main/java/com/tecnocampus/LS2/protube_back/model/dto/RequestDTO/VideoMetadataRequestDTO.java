@@ -1,8 +1,8 @@
-package com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO;
+package com.tecnocampus.LS2.protube_back.model.dto.RequestDTO;
 
 import java.util.List;
 
-public record VideoMetaDTO(
+public record VideoMetadataRequestDTO(
         String description,
         List<String> categories,
         List<String> tags,

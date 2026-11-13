@@ -2,7 +2,6 @@ server:
   port: 8080
 
 pro_tube:
-  load_initial_data: true
   auth:
     success-url: ${ENV_PROTUBE_FRONTEND_URL:http://localhost:5173/}
 

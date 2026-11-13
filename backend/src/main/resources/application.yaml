@@ -2,11 +2,11 @@ spring:
   application:
     name: protube-back
   thymeleaf:
-    prefix: "classpath:/static/"
+    prefix: "classpath:/templates/"
   servlet:
     multipart:
       max-file-size: 100MB
-      max-request-size: 100MB
+      max-request-size: 110MB
   security:
     oauth2:
       client:
@@ -30,6 +30,5 @@ spring:
 pro_tube:
   auth:
     success-url: ${ENV_PROTUBE_FRONTEND_URL:/}
-  store:
-    dir: "${ENV_PROTUBE_STORE_DIR}"
-    source: "${ENV_PROTUBE_STORE_SOURCE:initial-catalog}"
+  media:
+    base-url: ${ENV_PROTUBE_MEDIA_BASE_URL:https://marramiau-protube.duckdns.org}
