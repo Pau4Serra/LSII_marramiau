@@ -1,10 +1,15 @@
 package com.tecnocampus.LS2.protube_back.controller;
 
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import com.tecnocampus.LS2.protube_back.services.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,8 +37,29 @@ public class VideosController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadVideo() {
-        return ResponseEntity.ok().body("Video uploaded successfully");
+    public ResponseEntity<UUID> createVideo(
+            @RequestBody CreateVideoRequestDTO request,
+            @AuthenticationPrincipal OidcUser user) {
+
+        UUID id = videoService.createVideo(
+                request, user.getSubject()
+        );
+
+        return ResponseEntity.status(201).body(id);
+    }
+
+    @PostMapping(
+            value = "/{id}/file",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Void> uploadVideoFile(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal OidcUser user) {
+
+        videoService.uploadVideoFile(id, file, user);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{videoId}")

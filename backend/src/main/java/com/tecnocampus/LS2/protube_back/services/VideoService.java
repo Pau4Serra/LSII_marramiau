@@ -3,13 +3,15 @@ package com.tecnocampus.LS2.protube_back.services;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.tecnocampus.LS2.protube_back.model.Category;
-import com.tecnocampus.LS2.protube_back.model.Video;
-import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetaDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.VideoMetadataRequestDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetadataDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +83,7 @@ public class VideoService {
     }
 
     private PublicVideoResponseDTO mapToResponse(VideoMetadataDTO metadata) {
-        VideoMetaDTO meta = metadata.meta();
+        VideoMetadataRequestDTO meta = metadata.meta();
 
         return new PublicVideoResponseDTO(
                 metadata.toPublicId(metadataSource),
@@ -125,5 +127,14 @@ public class VideoService {
         }
 
         return matches;
+    }
+
+    public UUID createVideo(CreateVideoRequestDTO request, String subject) {
+        // TODO: Implement video creation logic
+        return null;
+    }
+
+    public void uploadVideoFile(UUID id, MultipartFile file, OidcUser user) {
+        // TODO: Implement video file upload logic
     }
 }

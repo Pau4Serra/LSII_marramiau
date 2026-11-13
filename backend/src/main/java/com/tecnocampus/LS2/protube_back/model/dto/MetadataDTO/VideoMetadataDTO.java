@@ -1,5 +1,7 @@
 package com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO;
 
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.VideoMetadataRequestDTO;
+
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -9,7 +11,7 @@ public record VideoMetadataDTO(
         String title,
         String user,
         long timestamp,
-        VideoMetaDTO meta
+        VideoMetadataRequestDTO meta
 
 ) {
     /**
