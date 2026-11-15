@@ -326,6 +326,16 @@ npm run test
 
 ## Tooling
 
+### Development video metadata
+
+With the Spring `dev` profile, the backend imports the videoGrabber JSON files into its in-memory H2 database
+at each startup. Set `ENV_PROTUBE_STORE_DIR` to the directory containing the JSON files and start the backend
+normally with `--spring.profiles.active=dev`. If the directory is not configured, the import is skipped.
+`ENV_PROTUBE_MEDIA_BASE_URL` supplies the URL prefix for `{id}.mp4` and `{id}.webp`; media files are not uploaded.
+Channels are created as development catalog users. Only fields supported by the current models are imported
+(videos, channels, and categories; tag names and comment contents are not yet supported). The loader is disabled
+in production.
+
 ### Video grabber
 
 #### Installation
