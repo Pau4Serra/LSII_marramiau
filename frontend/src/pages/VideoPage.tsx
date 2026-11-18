@@ -24,6 +24,8 @@ interface VideoPageProps {
   videoId: string;
   user?: User | null;
   onLoginClick?: () => void;
+  darkMode?: boolean;
+  onToggleTheme?: () => void;
 }
 
 const resolveMediaUrl = (url: string) => {
@@ -46,7 +48,7 @@ const formatCount = (count: number) => {
   return count.toString();
 };
 
-export default function VideoPage({ videoId, user, onLoginClick }: VideoPageProps) {
+export default function VideoPage({ videoId, user, onLoginClick, darkMode, onToggleTheme }: VideoPageProps) {
   const [video, setVideo] = useState<VideoDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +93,7 @@ export default function VideoPage({ videoId, user, onLoginClick }: VideoPageProp
 
   return (
     <>
-      <Navbar user={user} onLoginClick={onLoginClick} />
+      <Navbar user={user} onLoginClick={onLoginClick} darkMode={darkMode} onToggleTheme={onToggleTheme} />
       <main className="video-page">
         <button type="button" className="video-page-back" onClick={goHome}>
           Back to videos

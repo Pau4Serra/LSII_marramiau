@@ -8,7 +8,19 @@ import { getEnv } from './utils/Env';
 import { User } from './types/user';
 import axios from 'axios';
 
-function HomePage({ user, onLoginClick }: { user: User | null; onLoginClick: () => void }) {
+const THEME_STORAGE_KEY = 'protube-dark-mode';
+
+function HomePage({
+  user,
+  onLoginClick,
+  darkMode,
+  onToggleTheme,
+}: {
+  user: User | null;
+  onLoginClick: () => void;
+  darkMode: boolean;
+  onToggleTheme: () => void;
+}) {
   const { value } = useAllVideos();
 
   const handleSearch = (query: string) => {
@@ -17,7 +29,13 @@ function HomePage({ user, onLoginClick }: { user: User | null; onLoginClick: () 
 
   return (
     <>
-      <Navbar user={user} onSearch={handleSearch} onLoginClick={onLoginClick} />
+      <Navbar
+        user={user}
+        onSearch={handleSearch}
+        onLoginClick={onLoginClick}
+        darkMode={darkMode}
+        onToggleTheme={onToggleTheme}
+      />
       <main className="App-main">
         <VideoGrid
           videos={value.length > 0 ? value : undefined}
@@ -34,6 +52,11 @@ function HomePage({ user, onLoginClick }: { user: User | null; onLoginClick: () 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) === 'true');
+
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, String(darkMode));
+  }, [darkMode]);
 
   useEffect(() => {
     const handlePopState = () => setPath(window.location.pathname);
@@ -64,14 +87,21 @@ function App() {
     form.submit();
   };
 
+  const toggleTheme = () => setDarkMode((isDarkMode) => !isDarkMode);
   const videoMatch = path.match(/^\/videos\/([^/]+)$/);
 
   return (
-    <div className="App">
+    <div className={`App${darkMode ? ' App--dark' : ''}`}>
       {videoMatch ? (
-        <VideoPage videoId={videoMatch[1]} user={currentUser} onLoginClick={handleLoginClick} />
+        <VideoPage
+          videoId={videoMatch[1]}
+          user={currentUser}
+          onLoginClick={handleLoginClick}
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
+        />
       ) : (
-        <HomePage user={currentUser} onLoginClick={handleLoginClick} />
+        <HomePage user={currentUser} onLoginClick={handleLoginClick} darkMode={darkMode} onToggleTheme={toggleTheme} />
       )}
     </div>
   );
