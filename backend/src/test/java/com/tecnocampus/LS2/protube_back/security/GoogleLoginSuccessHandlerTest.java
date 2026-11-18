@@ -46,7 +46,7 @@ class GoogleLoginSuccessHandlerTest {
                 .onAuthenticationSuccess(new MockHttpServletRequest(), response, authentication);
 
         verify(userService).findOrCreateFromGoogle("google-subject", "user@example.com",
-                "Test", "User", "https://example.com/avatar.png");
+                "Test", "User", "https://example.com/avatar.png", false);
         assertEquals(302, response.getStatus());
         assertEquals(successUrl, response.getRedirectedUrl());
     }
@@ -56,7 +56,7 @@ class GoogleLoginSuccessHandlerTest {
         when(authentication.getPrincipal()).thenReturn(googleUser);
         when(googleUser.getSubject()).thenReturn("google-subject");
         doThrow(new IllegalStateException("Database unavailable"))
-                .when(userService).findOrCreateFromGoogle("google-subject", null, null, null, null);
+                .when(userService).findOrCreateFromGoogle("google-subject", null, null, null, null, false);
         MockHttpServletResponse response = new MockHttpServletResponse();
         GoogleLoginSuccessHandler handler = new GoogleLoginSuccessHandler(userService, "/");
 
