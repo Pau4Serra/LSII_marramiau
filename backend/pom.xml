@@ -135,6 +135,9 @@
             </properties>
         </profile>
         <profile>
+            <id>coverage</id>
+        </profile>
+        <profile>
             <id>prod</id>
             <build>
                 <plugins>
