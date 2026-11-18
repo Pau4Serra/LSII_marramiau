@@ -7,6 +7,7 @@ import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoRespons
 import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,11 @@ import java.util.UUID;
 @Service
 public class VideoService {
 
+    @Autowired
     private final VideoRepository videoRepository;
+    @Autowired
     private final UserRepository userRepository;
+    @Autowired
     private final OciMediaClientService ociMediaClientService;
 
     public VideoService(
