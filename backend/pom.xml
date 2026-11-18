@@ -11,7 +11,7 @@
     </parent>
     <groupId>com.tecnocampus.LS2</groupId>
     <artifactId>protube-back</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>protube-back</name>
     <description>myyyyyy precious tube</description>
     <url/>
@@ -45,7 +45,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -77,8 +80,6 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.2</version>
         </dependency>
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -113,6 +114,14 @@
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.12</version>
         </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -124,6 +133,9 @@
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
             </properties>
+        </profile>
+        <profile>
+            <id>coverage</id>
         </profile>
         <profile>
             <id>prod</id>
@@ -214,6 +226,13 @@
     </profiles>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>

@@ -1,6 +1,6 @@
 .navbar-header {
   width: 100%;
-  background-color: #f5f5f5;
+  background-color: var(--app-background);
   padding: 24px 36px 16px 36px;
   box-sizing: border-box;
 }
@@ -40,7 +40,7 @@
 .navbar-brand-name {
   font-size: 22px;
   font-weight: 700;
-  color: #111111;
+  color: var(--app-text);
   letter-spacing: -0.5px;
   user-select: none;
   line-height: 1;
@@ -59,7 +59,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: #d9d9d9;
+  background-color: var(--control-background);
   border-radius: 9999px;
   height: 36px;
   padding: 0 14px 0 18px;
@@ -71,7 +71,7 @@
 
 .navbar-search-wrapper:focus-within {
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
-  background-color: #cecece;
+  background-color: var(--control-hover);
 }
 
 .navbar-search-input {
@@ -80,12 +80,12 @@
   border: none;
   outline: none;
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--app-text);
   padding-right: 8px;
 }
 
 .navbar-search-input::placeholder {
-  color: #717171;
+  color: var(--muted-text);
 }
 
 .navbar-search-btn {
@@ -97,12 +97,12 @@
   align-items: center;
   justify-content: center;
   padding: 4px;
-  color: #555555;
+  color: var(--muted-text);
   transition: color 0.15s ease;
 }
 
 .navbar-search-btn:hover {
-  color: #111111;
+  color: var(--app-text);
 }
 
 .search-icon {
@@ -117,12 +117,47 @@
   flex-shrink: 0;
 }
 
+.navbar-theme-toggle {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--app-text);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.15s ease;
+}
+
+.navbar-theme-toggle:hover {
+  background-color: var(--control-background);
+}
+
+.navbar-theme-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.navbar-theme-toggle:focus-visible {
+  outline: 2px solid #4b83d1;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 .navbar-login-btn {
   background: transparent;
   border: none;
   font-size: 15px;
   font-weight: 500;
-  color: #111111;
+  color: var(--app-text);
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 6px;
@@ -138,7 +173,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background-color: #d9d9d9;
+  background-color: var(--control-background);
   flex-shrink: 0;
   cursor: pointer;
   transition:
@@ -147,6 +182,21 @@
 }
 
 .navbar-avatar-placeholder:hover {
+  opacity: 0.85;
+}
+
+.navbar-avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.navbar-avatar-img:hover {
   opacity: 0.85;
 }
 
@@ -194,7 +244,8 @@
     gap: 12px;
   }
 
-  .navbar-avatar-placeholder {
+  .navbar-avatar-placeholder,
+  .navbar-avatar-img {
     width: 36px;
     height: 36px;
   }

@@ -26,14 +26,14 @@ public class VideosController {
         return ResponseEntity.of(videoService.findVideoById(videoId));
     }
 
+    @GetMapping("/search/{query}")
+    public ResponseEntity<List<PublicVideoResponseDTO>> getVideosByName(@PathVariable String query) {
+        return ResponseEntity.ok(videoService.findVideosByName(query));
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<String> uploadVideo() {
         return ResponseEntity.ok().body("Video uploaded successfully");
-    }
-
-    @GetMapping("/search/{query}")
-    public ResponseEntity<List<String>> searchVideos(@PathVariable String query) {
-        return ResponseEntity.ok().body(List.of("video1", "video2"));
     }
 
     @PatchMapping("/{videoId}")

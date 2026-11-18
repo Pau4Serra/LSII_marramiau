@@ -1,8 +1,9 @@
 export interface Video {
   id: string | number;
   title: string;
-  thumbnailUrl?: string;
-  channel?: string;
-  views?: number | string;
+  thumbnail?: string;
+  channelName?: string;
+  viewsCount?: number | string;
   createdAt?: string;
+  duration?: number | string;
 }

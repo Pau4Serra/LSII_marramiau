@@ -46,6 +46,7 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 | `ENV_PROTUBE_STORE_SOURCE`         | optional                | Stable dataset name used to derive public video UUIDs (default: `initial-catalog`). Keep it when moving the store; use a new name for a replacement dataset whose numeric IDs are reused. |
 | `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
 | `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
+| `ENV_PROTUBE_FRONTEND_URL`         | optional                | Redirect after Google login. Defaults to `http://localhost:5173/` in dev and `/` in prod.           |
 | `ENV_PROTUBE_DB_USER`              | `prod` profile          | Database user (use `sa` with the default H2 datasource)                                          |
 | `ENV_PROTUBE_DB_PWD`               | `prod` profile          | Database password (empty with the default H2 datasource)                                         |
 | `ENV_PROTUBE_DB`                   | `prod` + PostgreSQL     | PostgreSQL database name (see [Using PostgreSQL](#using-postgresql))                              |

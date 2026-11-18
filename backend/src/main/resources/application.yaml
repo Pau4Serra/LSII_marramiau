@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: protube-back
+  thymeleaf:
+    prefix: "classpath:/static/"
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "${ENV_PROTUBE_GOOGLE_CLIENT_ID}"
+            client-secret: "${ENV_PROTUBE_GOOGLE_CLIENT_SECRET}"
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          google:
+            authorization-uri: "https://accounts.google.com/o/oauth2/v2/auth"
+            token-uri: "https://oauth2.googleapis.com/token"
+            user-info-uri: "https://www.googleapis.com/oauth2/v3/userinfo"
+            user-name-attribute: sub
+            issuer-uri: "https://accounts.google.com"
+
+pro_tube:
+  auth:
+    success-url: ${ENV_PROTUBE_FRONTEND_URL:/}
+  store:
+    dir: "${ENV_PROTUBE_STORE_DIR}"
+    source: "${ENV_PROTUBE_STORE_SOURCE:initial-catalog}"

@@ -17,7 +17,7 @@
 .video-thumbnail-placeholder {
   width: 100%;
   aspect-ratio: 16 / 10;
-  background-color: #d9d9d9;
+  background-color: var(--control-background);
   border-radius: 12px;
   transition: opacity 0.2s ease;
 }
@@ -32,15 +32,15 @@
 .video-title-placeholder {
   width: 90%;
   height: 11px;
-  background-color: #d9d9d9;
+  background-color: var(--control-background);
   border-radius: 6px;
 }
 
 /* Real Video Styles */
 .video-thumbnail-wrapper {
   width: 100%;
-  aspect-ratio: 16 / 10;
-  background-color: #d9d9d9;
+  aspect-ratio: 16 / 9;
+  background-color: var(--control-background);
   border-radius: 12px;
   overflow: hidden;
   position: relative;
@@ -56,7 +56,22 @@
 .video-thumbnail-fallback {
   width: 100%;
   height: 100%;
-  background-color: #d9d9d9;
+  background-color: var(--control-background);
+}
+
+.video-duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  pointer-events: none;
 }
 
 .video-details {
@@ -70,7 +85,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #111111;
+  color: var(--app-text);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -84,5 +99,5 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #606060;
+  color: var(--muted-text);
 }

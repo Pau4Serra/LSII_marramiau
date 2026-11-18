@@ -6,11 +6,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,14 +21,26 @@ class VideosControllerTest {
     @InjectMocks
     VideosController videosController;
 
-    @Autowired
     @Mock
     VideoService videoService;
 
+    @Test
+    void getVideosReturnsServiceResponse() {
+        when(videoService.getVideos()).thenReturn(List.of());
+        assertTrue(videosController.getVideos().getBody().isEmpty());
+    }
 
-//    @Test
-//    void getVideos() {
-//        when(videoService.getVideos()).thenReturn(List.of("video 1", "video 2"));
-//        assertEquals(List.of("video 1", "video 2"), videosController.getVideos().getBody());
-//    }
+    @Test
+    void getVideoUsesRequestedId() {
+        UUID id = UUID.randomUUID();
+        when(videoService.findVideoById(id)).thenReturn(Optional.empty());
+        assertTrue(videosController.getVideo(id).getBody() == null);
+    }
+
+    @Test
+    void searchAndUploadEndpointsReturnExpectedResponses() {
+        when(videoService.findVideosByName("test")).thenReturn(List.of());
+        assertEquals(List.of(), videosController.getVideosByName("test").getBody());
+        assertEquals("Video uploaded successfully", videosController.uploadVideo().getBody());
+    }
 }

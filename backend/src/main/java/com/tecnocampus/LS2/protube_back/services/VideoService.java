@@ -3,9 +3,11 @@ package com.tecnocampus.LS2.protube_back.services;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.tecnocampus.LS2.protube_back.model.Category;
+import com.tecnocampus.LS2.protube_back.model.Video;
 import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetaDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.MetadataDTO.VideoMetadataDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
+import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,12 @@ import java.util.UUID;
 
 @Service
 public class VideoService {
+
+    private final VideoRepository videoRepository;
+
+    public VideoService(VideoRepository videoRepository) {
+        this.videoRepository = videoRepository;
+    }
 
     @Value("${pro_tube.store.dir}")
     private String videoSource;
@@ -99,5 +107,23 @@ public class VideoService {
         }
 
         return Optional.empty();
+    }
+
+    public List<PublicVideoResponseDTO> findVideosByName(String query) {
+        List<PublicVideoResponseDTO> matches = new ArrayList<>();
+
+        if (query == null || query.isBlank()) {
+            return getVideos();
+        }
+
+        String search = query.trim().toLowerCase();
+
+        for (PublicVideoResponseDTO video : getVideos()) {
+            if (video.title().toLowerCase().contains(search)) {
+                matches.add(video);
+            }
+        }
+
+        return matches;
     }
 }

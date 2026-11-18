@@ -1,0 +1,22 @@
+server:
+  port: 8090
+
+pro_tube:
+  load_initial_data: false
+
+spring:
+  datasource:
+    url: "jdbc:postgresql://${ENV_PROTUBE_DB_HOST}:5432/${ENV_PROTUBE_DB}"
+    username: "${ENV_PROTUBE_DB_USER}"
+    password: "${ENV_PROTUBE_DB_PASS}"
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mvc:
+    static-path-pattern: /media/**
+
+logging:
+  level:
+    org.springframework.web: DEBUG
