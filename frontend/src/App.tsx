@@ -15,30 +15,31 @@ function HomePage({
   onLoginClick,
   darkMode,
   onToggleTheme,
+  onSearch,
+  videos,
+  loading,
 }: {
   user: User | null;
   onLoginClick: () => void;
   darkMode: boolean;
   onToggleTheme: () => void;
+  onSearch: (query: string) => void;
+  videos: ReturnType<typeof useAllVideos>['value'];
+  loading: ReturnType<typeof useAllVideos>['loading'];
 }) {
-  const { value } = useAllVideos();
-
-  const handleSearch = (query: string) => {
-    console.log('Searching for:', query);
-  };
-
   return (
     <>
       <Navbar
         user={user}
-        onSearch={handleSearch}
+        onSearch={onSearch}
         onLoginClick={onLoginClick}
         darkMode={darkMode}
         onToggleTheme={onToggleTheme}
       />
       <main className="App-main">
         <VideoGrid
-          videos={value.length > 0 ? value : undefined}
+          videos={videos.length > 0 ? videos : undefined}
+          loading={loading === 'loading'}
           onVideoClick={(video) => {
             window.history.pushState({}, '', `/videos/${video.id}`);
             window.dispatchEvent(new PopStateEvent('popstate'));
@@ -53,6 +54,7 @@ function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) === 'true');
+  const { value: videos, loading, searchVideos } = useAllVideos();
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, String(darkMode));
@@ -87,6 +89,14 @@ function App() {
     form.submit();
   };
 
+  const handleSearch = (query: string) => {
+    searchVideos(query);
+    if (path !== '/') {
+      window.history.pushState({}, '', '/');
+      setPath('/');
+    }
+  };
+
   const toggleTheme = () => setDarkMode((isDarkMode) => !isDarkMode);
   const videoMatch = path.match(/^\/videos\/([^/]+)$/);
 
@@ -99,9 +109,18 @@ function App() {
           onLoginClick={handleLoginClick}
           darkMode={darkMode}
           onToggleTheme={toggleTheme}
+          onSearch={handleSearch}
         />
       ) : (
-        <HomePage user={currentUser} onLoginClick={handleLoginClick} darkMode={darkMode} onToggleTheme={toggleTheme} />
+        <HomePage
+          user={currentUser}
+          onLoginClick={handleLoginClick}
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
+          onSearch={handleSearch}
+          videos={videos}
+          loading={loading}
+        />
       )}
     </div>
   );
