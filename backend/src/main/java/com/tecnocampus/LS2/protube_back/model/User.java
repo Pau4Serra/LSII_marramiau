@@ -1,5 +1,6 @@
 package com.tecnocampus.LS2.protube_back.model;
 
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.CommentAuthorResponseDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -51,6 +52,12 @@ public class User {
     @OneToMany(mappedBy = "channel")
     private List<Video> videos = new ArrayList<>();
 
+    @OneToMany(mappedBy = "author")
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<CommentLike> commentLikes = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
@@ -74,5 +81,13 @@ public class User {
         this.lastname = lastName;
         this.pictureUrl = pictureUrl;
         this.dark_mode = dark_mode;
+    }
+
+    public CommentAuthorResponseDTO toDTO() {
+        return new CommentAuthorResponseDTO(
+                this.getId(),
+                this.getName(),
+                this.getPictureUrl()
+        );
     }
 }

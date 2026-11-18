@@ -22,6 +22,7 @@ public class Video {
     @Column(nullable = false)
     private String title;
 
+    @Column(columnDefinition = "text")
     private String description;
 
     @Column(nullable = false)
@@ -30,8 +31,12 @@ public class Video {
     @Column(nullable = false)
     private String thumbnail;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String videoUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VideoStatus status = VideoStatus.PENDING;
 
     @ElementCollection
     @CollectionTable(
