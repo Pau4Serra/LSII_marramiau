@@ -2,6 +2,7 @@ server:
   port: 8080
 
 pro_tube:
+  load_initial_data: true
   store:
     dir: ${ENV_PROTUBE_STORE_DIR:}
   auth:

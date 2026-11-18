@@ -1,22 +1,25 @@
 package com.tecnocampus.LS2.protube_back.services;
 
+import com.tecnocampus.LS2.protube_back.model.Category;
+import com.tecnocampus.LS2.protube_back.model.User;
+import com.tecnocampus.LS2.protube_back.model.Video;
 import com.tecnocampus.LS2.protube_back.model.VideoStatus;
+import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VideoServiceTest {
@@ -24,61 +27,77 @@ class VideoServiceTest {
     @Mock
     VideoRepository videoRepository;
 
-    @Test
-    void videoStatusValuesAreAvailable() {
-        assertEquals(2, VideoStatus.values().length);
-        assertEquals(VideoStatus.ACTIVE, VideoStatus.valueOf("ACTIVE"));
+    @Mock
+    UserRepository userRepository;
+
+    @Mock
+    OciMediaClientService ociMediaClientService;
+
+    VideoService videoService;
+
+    @BeforeEach
+    void setUp() {
+        videoService = new VideoService(videoRepository, userRepository, ociMediaClientService);
     }
 
     @Test
-    void getVideosReturnsEmptyWhenNoMetadataFiles(@TempDir Path storeDirectory) {
-        VideoService videoService = createService(storeDirectory);
+    void getVideosReturnsActiveVideos() {
+        Video video = activeVideo("First video");
+        when(videoRepository.findByStatus(VideoStatus.ACTIVE)).thenReturn(List.of(video));
 
-        assertTrue(Files.isDirectory(storeDirectory));
-        assertEquals(List.of(), videoService.getVideos());
+        var result = videoService.getVideos();
+
+        assertEquals(1, result.size());
+        assertEquals("First video", result.get(0).title());
     }
 
     @Test
-    void mapsMetadataAndSupportsSearchAndLookup(@TempDir Path storeDirectory) throws Exception {
-        Files.writeString(storeDirectory.resolve("1.json"), metadataJson(1, "First video", "First description"), StandardCharsets.UTF_8);
-        Files.writeString(storeDirectory.resolve("2.json"), metadataJson(2, "Second video", "Second description"), StandardCharsets.UTF_8);
-        VideoService videoService = createService(storeDirectory);
+    void findVideosByNameUsesTrimmedCaseInsensitiveSearch() {
+        Video video = activeVideo("First video");
+        when(videoRepository.findByTitleContainingIgnoreCaseAndStatus("First", VideoStatus.ACTIVE))
+                .thenReturn(List.of(video));
 
-        assertEquals(2, videoService.getVideos().size());
-        assertEquals(1, videoService.findVideosByName("First").size());
-        assertEquals(2, videoService.findVideosByName("  ").size());
-
-        UUID firstId = videoService.getVideos().get(0).id();
-        assertTrue(videoService.findVideoById(firstId).isPresent());
-        assertTrue(videoService.findVideoById(UUID.randomUUID()).isEmpty());
+        assertEquals(1, videoService.findVideosByName("  First  ").size());
     }
 
-    private VideoService createService(Path storeDirectory) {
-        VideoService videoService = new VideoService(videoRepository);
-        ReflectionTestUtils.setField(videoService, "videoSource", storeDirectory.toString());
-        ReflectionTestUtils.setField(videoService, "metadataSource", "test-catalog");
-        return videoService;
+    @Test
+    void findVideosByNameWithBlankQueryReturnsActiveVideos() {
+        when(videoRepository.findByStatus(VideoStatus.ACTIVE)).thenReturn(List.of(activeVideo("First video")));
+
+        assertEquals(1, videoService.findVideosByName("  ").size());
     }
 
-    private String metadataJson(int id, String title, String description) {
-        return """
-                {
-                  "id": %d,
-                  "duration": 125.4,
-                  "title": "%s",
-                  "user": "test-user",
-                  "timestamp": 1700000000,
-                  "meta": {
-                    "description": "%s",
-                    "categories": ["Music"],
-                    "tags": ["tag"],
-                    "view_count": 42,
-                    "like_count": 7,
-                    "channel": "Test Channel",
-                    "channel_follower_count": 100
-                  }
-                }
-                """.formatted(id, title, description);
+    @Test
+    void findVideoByIdReturnsActiveVideoOrEmpty() {
+        UUID id = UUID.randomUUID();
+        Video video = activeVideo("First video");
+        video.setId(id);
+        when(videoRepository.findByIdAndStatus(id, VideoStatus.ACTIVE)).thenReturn(Optional.of(video));
+
+        assertTrue(videoService.findVideoById(id).isPresent());
+
+        UUID missingId = UUID.randomUUID();
+        when(videoRepository.findByIdAndStatus(missingId, VideoStatus.ACTIVE)).thenReturn(Optional.empty());
+        assertTrue(videoService.findVideoById(missingId).isEmpty());
     }
 
+    private Video activeVideo(String title) {
+        User channel = new User("subject", "channel@example.com", "Test", "Channel", "picture", false);
+        channel.setName("Test Channel");
+
+        Video video = new Video();
+        video.setId(UUID.randomUUID());
+        video.setTitle(title);
+        video.setDescription("Description");
+        video.setDuration(125);
+        video.setThumbnail("/thumbnail.webp");
+        video.setVideoUrl("/video.mp4");
+        video.setStatus(VideoStatus.ACTIVE);
+        video.setCategories(List.of(Category.MUSIC));
+        video.setChannel(channel);
+        video.setViewCount(42L);
+        video.setLikeCount(7);
+        video.setUploadDate(Instant.parse("2023-11-15T00:00:00Z"));
+        return video;
+    }
 }

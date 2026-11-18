@@ -44,8 +44,7 @@ public class SecurityConfig {
                         HttpMethod.GET,
                         "/api/videos",
                         "/api/videos/search/{query}",
-                        "/api/videos/{videoId}",
-                        "/api/videos/*/comments"
+                        "/api/videos/{videoId}"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

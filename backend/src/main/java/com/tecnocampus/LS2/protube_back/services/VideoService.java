@@ -22,6 +22,7 @@ import java.util.UUID;
 @Service
 public class VideoService {
 
+    @Autowired
     private final VideoRepository videoRepository;
     private final UserRepository userRepository;
     private final OciMediaClientService ociMediaClientService;
