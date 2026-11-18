@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { User } from '../types/user';
 import './Navbar.css';
 
 interface NavbarProps {
+  user?: User | null;
   onSearch?: (query: string) => void;
   onLoginClick?: () => void;
 }
 
-export const Navbar = ({ onSearch, onLoginClick }: NavbarProps) => {
+export const Navbar = ({ user, onSearch, onLoginClick }: NavbarProps) => {
   const [query, setQuery] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -59,10 +61,21 @@ export const Navbar = ({ onSearch, onLoginClick }: NavbarProps) => {
 
         {/* Right: Auth / Profile */}
         <div className="navbar-right">
-          <button type="button" className="navbar-login-btn" onClick={onLoginClick}>
-            Log in
-          </button>
-          <div className="navbar-avatar-placeholder" aria-label="User avatar" />
+          {!user ? (
+            <button type="button" className="navbar-login-btn" onClick={onLoginClick}>
+              Log in
+            </button>
+          ) : null}
+          {user?.pictureUrl ? (
+            <img
+              src={user.pictureUrl}
+              alt={user.name || 'User avatar'}
+              className="navbar-avatar-img"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="navbar-avatar-placeholder" aria-label="User avatar" />
+          )}
         </div>
       </div>
     </header>

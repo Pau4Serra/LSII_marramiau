@@ -4,21 +4,20 @@ import Navbar from './components/Navbar';
 import VideoGrid from './components/VideoGrid';
 import { useAllVideos } from './useAllVideos';
 import VideoPage from './pages/VideoPage';
+import { getEnv } from './utils/Env';
+import { User } from './types/user';
+import axios from 'axios';
 
-function HomePage() {
+function HomePage({ user, onLoginClick }: { user: User | null; onLoginClick: () => void }) {
   const { value } = useAllVideos();
 
   const handleSearch = (query: string) => {
     console.log('Searching for:', query);
   };
 
-  const handleLoginClick = () => {
-    console.log('Login clicked');
-  };
-
   return (
     <>
-      <Navbar onSearch={handleSearch} onLoginClick={handleLoginClick} />
+      <Navbar user={user} onSearch={handleSearch} onLoginClick={onLoginClick} />
       <main className="App-main">
         <VideoGrid
           videos={value.length > 0 ? value : undefined}
@@ -34,6 +33,7 @@ function HomePage() {
 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handlePopState = () => setPath(window.location.pathname);
@@ -41,11 +41,38 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await axios.get<User>(`${getEnv().API_BASE_URL}/users/me`, {
+          withCredentials: true,
+        });
+        setCurrentUser(response.data);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  const handleLoginClick = () => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${getEnv().API_BASE_URL}/auth/login`;
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const videoMatch = path.match(/^\/videos\/([^/]+)$/);
 
   return (
     <div className="App">
-      {videoMatch ? <VideoPage videoId={videoMatch[1]} /> : <HomePage />}
+      {videoMatch ? (
+        <VideoPage videoId={videoMatch[1]} user={currentUser} onLoginClick={handleLoginClick} />
+      ) : (
+        <HomePage user={currentUser} onLoginClick={handleLoginClick} />
+      )}
     </div>
   );
 }

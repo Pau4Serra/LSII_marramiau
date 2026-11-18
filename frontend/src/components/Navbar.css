@@ -150,6 +150,21 @@
   opacity: 0.85;
 }
 
+.navbar-avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.navbar-avatar-img:hover {
+  opacity: 0.85;
+}
+
 /* Responsive adjustments */
 @media (max-width: 860px) {
   .navbar-header {
@@ -194,7 +209,8 @@
     gap: 12px;
   }
 
-  .navbar-avatar-placeholder {
+  .navbar-avatar-placeholder,
+  .navbar-avatar-img {
     width: 36px;
     height: 36px;
   }
