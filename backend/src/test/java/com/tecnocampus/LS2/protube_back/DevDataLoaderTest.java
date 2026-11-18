@@ -3,6 +3,7 @@ package com.tecnocampus.LS2.protube_back;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tecnocampus.LS2.protube_back.model.Category;
 import com.tecnocampus.LS2.protube_back.model.VideoStatus;
+import com.tecnocampus.LS2.protube_back.persistance.CommentRepository;
 import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,8 @@ class DevDataLoaderTest {
     @Autowired
     UserRepository users;
     @Autowired
+    CommentRepository comments;
+    @Autowired
     DevDataLoader configuredLoader;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -52,6 +55,7 @@ class DevDataLoaderTest {
         var imported = videos.findAll();
         assertThat(imported).hasSize(2);
         assertThat(users.count()).isEqualTo(1);
+        assertThat(comments.count()).isEqualTo(2);
         var video = imported.stream().filter(v -> v.getVideoUrl().endsWith("/0.mp4")).findFirst().orElseThrow();
         assertThat(video.getTitle()).isEqualTo("Vídeo de prova");
         assertThat(video.getDescription()).isEqualTo(description);
@@ -64,6 +68,12 @@ class DevDataLoaderTest {
         assertThat(video.getThumbnail()).isEqualTo("https://media.example/0.webp");
         assertThat(video.getChannel().getName()).isEqualTo("Canal català");
         assertThat(video.getChannel().getGoogleSubject()).startsWith("dev-channel:");
+        var comment = comments.findAll().getFirst();
+        assertThat(comment.getAuthor()).isNull();
+        assertThat(comment.getAuthorDisplayName()).isEqualTo("Legacy author");
+        assertThat(comment.getContent()).isEqualTo("Legacy comment");
+        assertThat(comment.getImportedLikeCount()).isEqualTo(7L);
+        assertThat(comment.getCreatedAt()).isEqualTo(Instant.ofEpochSecond(1416405619));
     }
 
     @Test
@@ -93,7 +103,7 @@ class DevDataLoaderTest {
 
     @Test
     void reportsMissingDirectoryOrInvalidMetadata() throws Exception {
-        var missing = new DevDataLoader(videos, users, mapper, directory.resolve("missing").toString(),
+        var missing = new DevDataLoader(videos, users, comments, mapper, directory.resolve("missing").toString(),
                 "https://media.example");
         assertThrows(IOException.class, () -> missing.run(null));
         Files.writeString(directory.resolve("0.json"), "{broken");
@@ -113,7 +123,7 @@ class DevDataLoaderTest {
     }
 
     private DevDataLoader loader() {
-        return new DevDataLoader(videos, users, mapper, directory.toString(), "https://media.example/");
+        return new DevDataLoader(videos, users, comments, mapper, directory.toString(), "https://media.example/");
     }
 
     private void writeVideo(String filename, int id, String description) throws Exception {
@@ -121,6 +131,12 @@ class DevDataLoaderTest {
                 "id", id, "title", "Vídeo de prova", "duration", 79.6, "timestamp", 1416405618,
                 "meta", Map.of("channel", "Canal català", "description", description,
                         "view_count", 5_909_835_460L, "like_count", 23_573_933,
-                        "categories", List.of("Music", "Music", "Unknown"))));
+                        "categories", List.of("Music", "Music", "Unknown"),
+                        "comments", List.of(Map.of(
+                                "text", "Legacy comment",
+                                "author", "Legacy author",
+                                "timestamp", 1416405619,
+                                "like_count", 7
+                        )))));
     }
 }

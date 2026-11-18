@@ -3,9 +3,11 @@ package com.tecnocampus.LS2.protube_back;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tecnocampus.LS2.protube_back.model.Category;
+import com.tecnocampus.LS2.protube_back.model.Comment;
 import com.tecnocampus.LS2.protube_back.model.User;
 import com.tecnocampus.LS2.protube_back.model.Video;
 import com.tecnocampus.LS2.protube_back.model.VideoStatus;
+import com.tecnocampus.LS2.protube_back.persistance.CommentRepository;
 import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -32,15 +35,17 @@ public class DevDataLoader implements ApplicationRunner {
     private static final Logger LOG = LoggerFactory.getLogger(DevDataLoader.class);
     private final VideoRepository videos;
     private final UserRepository users;
+    private final CommentRepository comments;
     private final ObjectMapper mapper;
     private final String directory;
     private final String mediaBaseUrl;
 
-    public DevDataLoader(VideoRepository videos, UserRepository users, ObjectMapper mapper,
+    public DevDataLoader(VideoRepository videos, UserRepository users, CommentRepository comments, ObjectMapper mapper,
             @Value("${pro_tube.store.dir:}") String directory,
             @Value("${pro_tube.media.base-url}") String mediaBaseUrl) {
         this.videos = videos;
         this.users = users;
+        this.comments = comments;
         this.mapper = mapper;
         this.directory = directory;
         this.mediaBaseUrl = mediaBaseUrl.replaceAll("/+$", "");
@@ -56,6 +61,7 @@ public class DevDataLoader implements ApplicationRunner {
 
         var channels = new HashMap<String, User>();
         int imported = 0;
+        int importedComments = 0;
         try (var files = Files.list(Path.of(directory))) {
             for (Path file : files.filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".json")).sorted().toList()) {
@@ -87,10 +93,38 @@ public class DevDataLoader implements ApplicationRunner {
                 video.setLikeCount(meta.path("like_count").asInt(0));
                 video.setUploadDate(Instant.ofEpochSecond(json.path("timestamp").asLong()));
                 video.setCategories(Category.fromMetadataList(categories));
-                videos.save(video);
+                Video savedVideo = videos.save(video);
+                importedComments += importComments(meta.path("comments"), savedVideo, file);
                 imported++;
             }
         }
-        LOG.info("Loaded {} videos into the dev database", imported);
+        LOG.info("Loaded {} videos and {} comments into the dev database", imported, importedComments);
+    }
+
+    private int importComments(JsonNode commentNodes, Video video, Path file) throws IOException {
+        List<Comment> importedComments = new ArrayList<>();
+        for (JsonNode commentNode : commentNodes) {
+            if (!commentNode.hasNonNull("text") || !commentNode.hasNonNull("author")
+                    || !commentNode.hasNonNull("timestamp")) {
+                throw new IOException("Missing required comment metadata in " + file);
+            }
+
+            String content = commentNode.get("text").asText();
+            String author = commentNode.get("author").asText();
+            if (content.isBlank() || author.isBlank()) {
+                throw new IOException("Blank comment metadata in " + file);
+            }
+
+            Comment comment = new Comment();
+            comment.setVideo(video);
+            comment.setContent(content);
+            comment.setAuthorDisplayName(author);
+            comment.setCreatedAt(Instant.ofEpochSecond(commentNode.get("timestamp").asLong()));
+            comment.setImportedLikeCount(commentNode.path("like_count").asLong(0));
+            importedComments.add(comment);
+        }
+
+        comments.saveAll(importedComments);
+        return importedComments.size();
     }
 }
