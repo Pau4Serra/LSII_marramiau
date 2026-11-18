@@ -22,6 +22,7 @@ public class Video {
     @Column(nullable = false)
     private String title;
 
+    @Column(columnDefinition = "text")
     private String description;
 
     @Column(nullable = false)
