@@ -37,6 +37,24 @@ describe('Navbar component', () => {
     expect(handleLogin).toHaveBeenCalledTimes(1);
   });
 
+  it('shows a sun in light mode and switches theme when clicked', () => {
+    const handleThemeToggle = jest.fn();
+    const { rerender } = render(<Navbar onToggleTheme={handleThemeToggle} />);
+
+    const lightModeButton = screen.getByRole('button', { name: 'Enable dark mode' });
+    expect(lightModeButton.querySelector('svg')).toHaveAttribute('viewBox', '0 0 24 24');
+    expect(lightModeButton.querySelector('circle')).toBeInTheDocument();
+    fireEvent.click(lightModeButton);
+    expect(handleThemeToggle).toHaveBeenCalledTimes(1);
+
+    rerender(<Navbar darkMode onToggleTheme={handleThemeToggle} />);
+    const darkModeButton = screen.getByRole('button', { name: 'Enable light mode' });
+    expect(darkModeButton.querySelector('circle')).not.toBeInTheDocument();
+    expect(darkModeButton.querySelector('path')).toBeInTheDocument();
+    fireEvent.click(darkModeButton);
+    expect(handleThemeToggle).toHaveBeenCalledTimes(2);
+  });
+
   it('renders user profile avatar image and hides login button when user is logged in with picture', () => {
     const mockUser: User = {
       id: '123',
