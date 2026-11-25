@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import VideoGrid from './components/VideoGrid';
 import { useAllVideos } from './useAllVideos';
 import VideoPage from './pages/VideoPage';
+import ProfilePage from './pages/ProfilePage';
 import { getEnv } from './utils/Env';
 import { User } from './types/user';
 import axios from 'axios';
@@ -16,6 +17,7 @@ function HomePage({
   darkMode,
   onToggleTheme,
   onSearch,
+  onProfileClick,
   videos,
   loading,
 }: {
@@ -24,6 +26,7 @@ function HomePage({
   darkMode: boolean;
   onToggleTheme: () => void;
   onSearch: (query: string) => void;
+  onProfileClick: () => void;
   videos: ReturnType<typeof useAllVideos>['value'];
   loading: ReturnType<typeof useAllVideos>['loading'];
 }) {
@@ -35,6 +38,7 @@ function HomePage({
         onLoginClick={onLoginClick}
         darkMode={darkMode}
         onToggleTheme={onToggleTheme}
+        onProfileClick={onProfileClick}
       />
       <main className="App-main">
         <VideoGrid
@@ -97,12 +101,30 @@ function App() {
     }
   };
 
+  const handleProfileClick = () => {
+    window.history.pushState({}, '', '/profile');
+    setPath('/profile');
+  };
+
+  const handleProfileUpdate = (updatedUser: User) => setCurrentUser(updatedUser);
+
   const toggleTheme = () => setDarkMode((isDarkMode) => !isDarkMode);
   const videoMatch = path.match(/^\/videos\/([^/]+)$/);
 
   return (
     <div className={`App${darkMode ? ' App--dark' : ''}`}>
-      {videoMatch ? (
+      {path === '/profile' ? (
+        <ProfilePage
+          user={currentUser}
+          videos={videos}
+          onProfileUpdate={handleProfileUpdate}
+          onLoginClick={handleLoginClick}
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
+          onSearch={handleSearch}
+          onProfileClick={handleProfileClick}
+        />
+      ) : videoMatch ? (
         <VideoPage
           videoId={videoMatch[1]}
           user={currentUser}
@@ -110,6 +132,7 @@ function App() {
           darkMode={darkMode}
           onToggleTheme={toggleTheme}
           onSearch={handleSearch}
+          onProfileClick={handleProfileClick}
         />
       ) : (
         <HomePage
@@ -118,6 +141,7 @@ function App() {
           darkMode={darkMode}
           onToggleTheme={toggleTheme}
           onSearch={handleSearch}
+          onProfileClick={handleProfileClick}
           videos={videos}
           loading={loading}
         />
