@@ -45,7 +45,7 @@ export const Navbar = ({
             <input
               type="text"
               className="navbar-search-input"
-              placeholder=""
+              placeholder="Search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search"
