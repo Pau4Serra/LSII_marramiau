@@ -25,7 +25,7 @@ describe('VideoCard component', () => {
 
     expect(screen.getByText('Amazing Video')).toBeInTheDocument();
     expect(screen.getByText('ProTube Channel')).toBeInTheDocument();
-    expect(screen.getByText('1.2 K visualitzacions')).toBeInTheDocument();
+    expect(screen.getByText('1.2 K views')).toBeInTheDocument();
     expect(screen.getByText('2:05')).toBeInTheDocument();
 
     const img = screen.getByRole('img');

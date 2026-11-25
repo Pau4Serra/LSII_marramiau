@@ -89,7 +89,7 @@ export const VideoCard = ({ video, onClick }: VideoCardProps) => {
           <div className="video-metadata">
             {video.channelName && <span className="video-channel">{video.channelName}</span>}
             {video.viewsCount !== undefined && (
-              <span className="video-views">{formatViews(video.viewsCount)} visualitzacions</span>
+              <span className="video-views">{formatViews(video.viewsCount)} views</span>
             )}
           </div>
         )}

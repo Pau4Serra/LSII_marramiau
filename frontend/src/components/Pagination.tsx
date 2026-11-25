@@ -31,9 +31,9 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }: Pagination
         className="pagination-btn pagination-prev"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        aria-label="Pàgina anterior"
+        aria-label="Previous page"
       >
-        &lsaquo; Anterior
+        &lsaquo; Previous
       </button>
 
       <div className="pagination-pages">
@@ -69,9 +69,9 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }: Pagination
         className="pagination-btn pagination-next"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        aria-label="Pàgina següent"
+        aria-label="Next page"
       >
-        Següent &rsaquo;
+        Next &rsaquo;
       </button>
     </nav>
   );

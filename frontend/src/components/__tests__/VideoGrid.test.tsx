@@ -43,7 +43,7 @@ describe('VideoGrid component', () => {
     expect(screen.getByText('Video 15')).toBeInTheDocument();
     expect(screen.queryByText('Video 16')).not.toBeInTheDocument();
 
-    const nextBtn = screen.getByRole('button', { name: 'Pàgina següent' });
+    const nextBtn = screen.getByRole('button', { name: 'Next page' });
     expect(nextBtn).toBeEnabled();
 
     // Click next page
@@ -74,7 +74,7 @@ describe('VideoGrid component', () => {
       />
     );
 
-    const nextBtn = screen.getByRole('button', { name: 'Pàgina següent' });
+    const nextBtn = screen.getByRole('button', { name: 'Next page' });
     fireEvent.click(nextBtn);
     expect(onPageChange).toHaveBeenCalledWith(2);
 

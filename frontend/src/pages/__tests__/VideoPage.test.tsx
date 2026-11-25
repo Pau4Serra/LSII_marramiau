@@ -109,3 +109,20 @@ describe('VideoPage autoplay', () => {
     expect(player.muted).toBe(true);
   });
 });
+
+describe('VideoPage back button', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(axios.get).mockResolvedValue({ data: video });
+  });
+
+  it('shows a decorative left arrow before the "Back to videos" text', () => {
+    render(<VideoPage videoId="video-1" user={user} />);
+
+    const backButton = screen.getByRole('button', { name: 'Back to videos' });
+    const arrow = screen.getByTestId('back-arrow-icon');
+    expect(backButton).toContainElement(arrow);
+    expect(backButton.firstElementChild).toBe(arrow);
+    expect(arrow).toHaveAttribute('aria-hidden', 'true');
+  });
+});
