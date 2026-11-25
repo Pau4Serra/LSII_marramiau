@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import axios from 'axios';
 import { getEnv } from '../utils/Env';
-import { Comment } from '../types/comment';
+import { Comment, CommentLike } from '../types/comment';
 import { User } from '../types/user';
 import './CommentSection.css';
 
@@ -83,6 +83,41 @@ export default function CommentSection({ videoId, user, onLoginClick }: CommentS
     }
   };
 
+  // Aplica un canvi a un comentari, sigui arrel o resposta
+  const updateComment = (commentId: string, changes: Partial<Comment>) => {
+    setComments((current) =>
+      current.map((comment) => {
+        if (comment.id === commentId) return { ...comment, ...changes };
+        if (!comment.replies?.some((reply) => reply.id === commentId)) return comment;
+        return {
+          ...comment,
+          replies: comment.replies.map((reply) => (reply.id === commentId ? { ...reply, ...changes } : reply)),
+        };
+      })
+    );
+  };
+
+  const toggleLike = async (comment: Comment) => {
+    if (!user) {
+      onLoginClick?.();
+      return;
+    }
+
+    setError(null);
+    const url = `${getEnv().API_BASE_URL}/comments/${comment.id}/like`;
+    try {
+      const response = comment.likedByCurrentUser
+        ? await axios.delete<CommentLike>(url, { withCredentials: true })
+        : await axios.put<CommentLike>(url, null, { withCredentials: true });
+      updateComment(comment.id, {
+        likeCount: response.data.likeCount,
+        likedByCurrentUser: response.data.likedByCurrentUser,
+      });
+    } catch {
+      setError('Could not update the like.');
+    }
+  };
+
   const toggleReply = (commentId: string) => {
     setReplyingTo((current) => (current === commentId ? null : commentId));
     setReplyContent('');
@@ -104,12 +139,27 @@ export default function CommentSection({ videoId, user, onLoginClick }: CommentS
         </p>
         <p className="comment-content">{comment.content}</p>
 
-        {/* El backend només permet respostes a comentaris arrel */}
-        {!isReply && user && (
-          <button type="button" className="comment-reply-button" onClick={() => toggleReply(comment.id)}>
-            Reply
+        <div className="comment-actions">
+          <button
+            type="button"
+            className={`comment-like-button${comment.likedByCurrentUser ? ' comment-like-button--active' : ''}`}
+            onClick={() => toggleLike(comment)}
+            aria-label={comment.likedByCurrentUser ? 'Unlike comment' : 'Like comment'}
+            aria-pressed={comment.likedByCurrentUser}
+          >
+            <svg className="comment-like-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 21S2.5 15.65 2.5 9.5C2.5 6.5 4.5 4 7 4c2.2 0 3.8 1.2 5 3 1.2-1.8 2.8-3 5-3 2.5 0 4.5 2.5 4.5 5.5C21.5 15.65 12 21 12 21Z" />
+            </svg>
+            <span>{comment.likeCount}</span>
           </button>
-        )}
+
+          {/* El backend només permet respostes a comentaris arrel */}
+          {!isReply && user && (
+            <button type="button" className="comment-reply-button" onClick={() => toggleReply(comment.id)}>
+              Reply
+            </button>
+          )}
+        </div>
 
         {!isReply && replyingTo === comment.id && (
           <form className="comment-form" onSubmit={(event) => submitReply(event, comment.id)}>

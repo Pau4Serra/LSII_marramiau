@@ -129,4 +129,50 @@ describe('CommentSection', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not post your reply.');
   });
+
+  it('likes a comment and saves it through the API', async () => {
+    mockedAxios.get.mockResolvedValue({ data: [makeComment('c1', 'Parent')] });
+    mockedAxios.put.mockResolvedValue({ data: { commentId: 'c1', likeCount: 1, likedByCurrentUser: true } });
+
+    render(<CommentSection videoId="video-1" user={user} />);
+    await screen.findByText('Parent');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Like comment' }));
+
+    const unlike = await screen.findByRole('button', { name: 'Unlike comment' });
+    expect(unlike).toHaveAttribute('aria-pressed', 'true');
+    expect(unlike).toHaveTextContent('1');
+    expect(mockedAxios.put).toHaveBeenCalledWith('other/comments/c1/like', null, { withCredentials: true });
+  });
+
+  it('removes the like of a reply', async () => {
+    const reply = { ...makeComment('r1', 'A reply'), likeCount: 3, likedByCurrentUser: true };
+    mockedAxios.get.mockResolvedValue({ data: [{ ...makeComment('c1', 'Parent'), replies: [reply] }] });
+    mockedAxios.delete.mockResolvedValue({ data: { commentId: 'r1', likeCount: 2, likedByCurrentUser: false } });
+
+    render(<CommentSection videoId="video-1" user={user} />);
+    await screen.findByText('A reply');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Unlike comment' }));
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Unlike comment' })).not.toBeInTheDocument());
+    expect(mockedAxios.delete).toHaveBeenCalledWith('other/comments/r1/like', { withCredentials: true });
+    expect(screen.getAllByRole('button', { name: 'Like comment' })[1]).toHaveTextContent('2');
+  });
+
+  it('asks anonymous users to log in when liking and shows like errors', async () => {
+    mockedAxios.get.mockResolvedValue({ data: [makeComment('c1', 'Parent')] });
+    mockedAxios.put.mockRejectedValue(new Error('fail'));
+    const onLoginClick = jest.fn();
+
+    const { rerender } = render(<CommentSection videoId="video-1" user={null} onLoginClick={onLoginClick} />);
+    await screen.findByText('Parent');
+    fireEvent.click(screen.getByRole('button', { name: 'Like comment' }));
+    expect(onLoginClick).toHaveBeenCalled();
+    expect(mockedAxios.put).not.toHaveBeenCalled();
+
+    rerender(<CommentSection videoId="video-1" user={user} onLoginClick={onLoginClick} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Like comment' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not update the like.');
+  });
 });

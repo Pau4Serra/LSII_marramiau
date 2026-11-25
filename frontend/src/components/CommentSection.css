@@ -126,3 +126,48 @@
   height: 28px;
   font-size: 12px;
 }
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.comment-actions .comment-reply-button {
+  margin-top: 0;
+}
+
+.comment-like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--muted-text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.comment-like-button:hover,
+.comment-like-button:focus-visible {
+  color: #d32f2f;
+}
+
+.comment-like-button--active {
+  color: #e53935;
+}
+
+.comment-like-icon {
+  width: 16px;
+  height: 16px;
+  fill: transparent;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.comment-like-button--active .comment-like-icon {
+  fill: currentColor;
+}

@@ -13,3 +13,9 @@ export interface Comment {
   likedByCurrentUser: boolean;
   replies: Comment[];
 }
+
+export interface CommentLike {
+  commentId: string;
+  likeCount: number;
+  likedByCurrentUser: boolean;
+}
