@@ -87,3 +87,42 @@
   margin: 0;
   white-space: pre-wrap;
 }
+
+.comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-reply-button {
+  margin-top: 4px;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--muted-text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.comment-body .comment-form {
+  margin: 8px 0 12px;
+}
+
+.comment-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.comment-replies {
+  margin-top: 12px;
+}
+
+.comment-item--reply {
+  margin-bottom: 12px;
+}
+
+.comment-item--reply .comment-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}

@@ -79,4 +79,54 @@ describe('CommentSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Could not post your comment.'));
   });
+
+  it('shows existing replies under their comment', async () => {
+    const withReply = { ...makeComment('c1', 'Parent'), replies: [makeComment('r1', 'A reply')] };
+    mockedAxios.get.mockResolvedValue({ data: [withReply] });
+
+    render(<CommentSection videoId="video-1" user={null} />);
+
+    expect(await screen.findByText('A reply')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument();
+  });
+
+  it('posts a reply to a comment and shows it in the thread', async () => {
+    mockedAxios.get.mockResolvedValue({ data: [makeComment('c1', 'Parent')] });
+    mockedAxios.post.mockResolvedValue({ data: makeComment('r1', 'My reply') });
+
+    render(<CommentSection videoId="video-1" user={user} />);
+    await screen.findByText('Parent');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    fireEvent.change(screen.getByLabelText('Reply to Alex'), { target: { value: 'My reply' } });
+    const replyForm = screen.getByLabelText('Reply to Alex').closest('form') as HTMLFormElement;
+    fireEvent.submit(replyForm);
+
+    await waitFor(() => expect(screen.queryByLabelText('Reply to Alex')).not.toBeInTheDocument());
+    expect(screen.getByText('My reply')).toBeInTheDocument();
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      'other/comments/c1/replies',
+      { content: 'My reply' },
+      { withCredentials: true }
+    );
+    expect(screen.queryByLabelText('Reply to Alex')).not.toBeInTheDocument();
+  });
+
+  it('cancels a reply and shows an error when posting a reply fails', async () => {
+    mockedAxios.get.mockResolvedValue({ data: [makeComment('c1', 'Parent')] });
+    mockedAxios.post.mockRejectedValue(new Error('fail'));
+
+    render(<CommentSection videoId="video-1" user={user} />);
+    await screen.findByText('Parent');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByLabelText('Reply to Alex')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    fireEvent.change(screen.getByLabelText('Reply to Alex'), { target: { value: 'Hi' } });
+    fireEvent.submit(screen.getByLabelText('Reply to Alex').closest('form') as HTMLFormElement);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not post your reply.');
+  });
 });

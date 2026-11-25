@@ -19,6 +19,8 @@ export default function CommentSection({ videoId, user, onLoginClick }: CommentS
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState('');
   const [posting, setPosting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -53,6 +55,89 @@ export default function CommentSection({ videoId, user, onLoginClick }: CommentS
     }
   };
 
+  const submitReply = async (event: FormEvent, parentId: string) => {
+    event.preventDefault();
+    const text = replyContent.trim();
+    if (!text) return;
+
+    setPosting(true);
+    setError(null);
+    try {
+      const response = await axios.post<Comment>(
+        `${getEnv().API_BASE_URL}/comments/${parentId}/replies`,
+        { content: text },
+        { withCredentials: true }
+      );
+      // La resposta va al final del fil del comentari pare
+      setComments((current) =>
+        current.map((comment) =>
+          comment.id === parentId ? { ...comment, replies: [...(comment.replies ?? []), response.data] } : comment
+        )
+      );
+      setReplyContent('');
+      setReplyingTo(null);
+    } catch {
+      setError('Could not post your reply.');
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const toggleReply = (commentId: string) => {
+    setReplyingTo((current) => (current === commentId ? null : commentId));
+    setReplyContent('');
+  };
+
+  const renderComment = (comment: Comment, isReply = false) => (
+    <li key={comment.id} className={`comment-item${isReply ? ' comment-item--reply' : ''}`}>
+      {comment.author.pictureUrl ? (
+        <img className="comment-avatar" src={comment.author.pictureUrl} alt="" />
+      ) : (
+        <span className="comment-avatar" aria-hidden="true">
+          {comment.author.name.charAt(0)}
+        </span>
+      )}
+      <div className="comment-body">
+        <p className="comment-meta">
+          <strong>{comment.author.name}</strong>
+          <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+        </p>
+        <p className="comment-content">{comment.content}</p>
+
+        {/* El backend només permet respostes a comentaris arrel */}
+        {!isReply && user && (
+          <button type="button" className="comment-reply-button" onClick={() => toggleReply(comment.id)}>
+            Reply
+          </button>
+        )}
+
+        {!isReply && replyingTo === comment.id && (
+          <form className="comment-form" onSubmit={(event) => submitReply(event, comment.id)}>
+            <textarea
+              aria-label={`Reply to ${comment.author.name}`}
+              placeholder="Add a reply..."
+              value={replyContent}
+              maxLength={MAX_LENGTH}
+              onChange={(event) => setReplyContent(event.target.value)}
+            />
+            <div className="comment-form-actions">
+              <button type="button" onClick={() => toggleReply(comment.id)}>
+                Cancel
+              </button>
+              <button type="submit" disabled={posting || !replyContent.trim()}>
+                Reply
+              </button>
+            </div>
+          </form>
+        )}
+
+        {!isReply && comment.replies?.length > 0 && (
+          <ul className="comment-list comment-replies">{comment.replies.map((reply) => renderComment(reply, true))}</ul>
+        )}
+      </div>
+    </li>
+  );
+
   return (
     <section className="comment-section" aria-label="Comments">
       <h2>{comments.length} comments</h2>
@@ -82,26 +167,7 @@ export default function CommentSection({ videoId, user, onLoginClick }: CommentS
       {loading && <p role="status">Loading comments...</p>}
       {error && <p role="alert">{error}</p>}
 
-      <ul className="comment-list">
-        {comments.map((comment) => (
-          <li key={comment.id} className="comment-item">
-            {comment.author.pictureUrl ? (
-              <img className="comment-avatar" src={comment.author.pictureUrl} alt="" />
-            ) : (
-              <span className="comment-avatar" aria-hidden="true">
-                {comment.author.name.charAt(0)}
-              </span>
-            )}
-            <div>
-              <p className="comment-meta">
-                <strong>{comment.author.name}</strong>
-                <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
-              </p>
-              <p className="comment-content">{comment.content}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <ul className="comment-list">{comments.map((comment) => renderComment(comment))}</ul>
     </section>
   );
 }
