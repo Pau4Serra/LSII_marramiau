@@ -97,6 +97,7 @@ describe('Navbar component', () => {
     render(<Navbar user={mockUser} />);
 
     expect(screen.queryByRole('button', { name: /log in/i })).not.toBeInTheDocument();
-    expect(screen.getByLabelText('User avatar')).toBeInTheDocument();
+    const profileButton = screen.getByRole('button', { name: 'View profile' });
+    expect(profileButton.querySelector('.navbar-avatar-placeholder')).toBeInTheDocument();
   });
 });
