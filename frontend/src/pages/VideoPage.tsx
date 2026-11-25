@@ -21,6 +21,11 @@ interface VideoDetails {
   videoUrl: string;
 }
 
+interface VideoLikeState {
+  likeCount: number;
+  likedByCurrentUser: boolean;
+}
+
 interface VideoPageProps {
   videoId: string;
   user?: User | null;
@@ -65,24 +70,55 @@ export default function VideoPage({
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [likeLoading, setLikeLoading] = useState(true);
+  const [likeUpdating, setLikeUpdating] = useState(false);
+  const [likeError, setLikeError] = useState('');
   const { value: videos } = useAllVideos();
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setLiked(false);
+    setLikeCount(0);
+    setLikeError('');
+    setLikeLoading(true);
+
     const fetchVideo = async () => {
       try {
         const response = await axios.get<VideoDetails>(`${getEnv().API_BASE_URL}/videos/${videoId}`);
+        if (!active) return;
         setVideo(response.data);
-        setLiked(false);
         setLikeCount(response.data.likeCount ?? 0);
       } catch {
-        setError('Video not found or unavailable.');
+        if (active) setError('Video not found or unavailable.');
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
+      }
+    };
+
+    const fetchLikeState = async () => {
+      try {
+        const response = await axios.get<VideoLikeState>(`${getEnv().API_BASE_URL}/videos/${videoId}/like`, {
+          withCredentials: true,
+        });
+        if (active) {
+          setLiked(response.data.likedByCurrentUser);
+          setLikeCount(response.data.likeCount);
+        }
+      } catch {
+        if (active) setLikeError('Could not load the video like status.');
+      } finally {
+        if (active) setLikeLoading(false);
       }
     };
 
     fetchVideo();
-  }, [videoId]);
+    fetchLikeState();
+    return () => {
+      active = false;
+    };
+  }, [videoId, user?.id]);
 
   const goHome = () => {
     window.history.pushState({}, '', '/');
@@ -96,10 +132,27 @@ export default function VideoPage({
 
   const recommendations = videos.filter((candidate) => String(candidate.id) !== videoId).slice(0, 20);
 
-  const toggleLike = () => {
-    const nextLiked = !liked;
-    setLiked(nextLiked);
-    setLikeCount((currentCount) => Math.max(0, currentCount + (nextLiked ? 1 : -1)));
+  const toggleLike = async () => {
+    if (!user) {
+      onLoginClick?.();
+      return;
+    }
+    if (likeLoading || likeUpdating) return;
+
+    setLikeUpdating(true);
+    setLikeError('');
+    try {
+      const likeUrl = `${getEnv().API_BASE_URL}/videos/${videoId}/like`;
+      const response = liked
+        ? await axios.delete<VideoLikeState>(likeUrl, { withCredentials: true })
+        : await axios.put<VideoLikeState>(likeUrl, null, { withCredentials: true });
+      setLiked(response.data.likedByCurrentUser);
+      setLikeCount(response.data.likeCount);
+    } catch {
+      setLikeError('Could not update the video like.');
+    } finally {
+      setLikeUpdating(false);
+    }
   };
 
   return (
@@ -139,6 +192,7 @@ export default function VideoPage({
                     type="button"
                     className={`like-button${liked ? ' like-button--active' : ''}`}
                     onClick={toggleLike}
+                    disabled={likeLoading || likeUpdating}
                     aria-label={liked ? 'Unlike video' : 'Like video'}
                     aria-pressed={liked}
                   >
@@ -149,6 +203,7 @@ export default function VideoPage({
                   </button>
                 </div>
               </div>
+              {likeError && <p className="video-like-error" role="alert">{likeError}</p>}
               {video.channelName && <p className="video-page-channel">{video.channelName}</p>}
               <details className="video-description">
                 <summary>

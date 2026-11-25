@@ -106,6 +106,12 @@ function App() {
     setPath('/profile');
   };
 
+  const handleVideoClick = (video: { id: string | number }) => {
+    const videoPath = `/videos/${video.id}`;
+    window.history.pushState({}, '', videoPath);
+    setPath(videoPath);
+  };
+
   const handleProfileUpdate = (updatedUser: User) => setCurrentUser(updatedUser);
 
   const handleLogout = () => {
@@ -130,6 +136,7 @@ function App() {
           onSearch={handleSearch}
           onProfileClick={handleProfileClick}
           onLogout={handleLogout}
+          onVideoClick={handleVideoClick}
         />
       ) : videoMatch ? (
         <VideoPage

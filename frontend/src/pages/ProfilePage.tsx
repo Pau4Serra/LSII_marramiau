@@ -17,6 +17,7 @@ interface ProfilePageProps {
   onSearch: (query: string) => void;
   onProfileClick: () => void;
   onLogout: () => void;
+  onVideoClick: (video: Video) => void;
 }
 
 export default function ProfilePage({
@@ -29,6 +30,7 @@ export default function ProfilePage({
   onSearch,
   onProfileClick,
   onLogout,
+  onVideoClick,
 }: ProfilePageProps) {
   const [name, setName] = useState(user?.name ?? '');
   const [lastname, setLastname] = useState(user?.lastname ?? '');
@@ -37,10 +39,42 @@ export default function ProfilePage({
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState('');
+  const [likedVideos, setLikedVideos] = useState<Video[]>([]);
+  const [likedVideosLoading, setLikedVideosLoading] = useState(true);
+  const [likedVideosError, setLikedVideosError] = useState('');
 
   useEffect(() => {
     setName(user?.name ?? '');
     setLastname(user?.lastname ?? '');
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setLikedVideos([]);
+      setLikedVideosLoading(false);
+      return;
+    }
+
+    let active = true;
+    const fetchLikedVideos = async () => {
+      setLikedVideosLoading(true);
+      setLikedVideosError('');
+      try {
+        const response = await axios.get<Video[]>(`${getEnv().API_BASE_URL}/users/me/liked-videos`, {
+          withCredentials: true,
+        });
+        if (active) setLikedVideos(response.data);
+      } catch {
+        if (active) setLikedVideosError('Your liked videos could not be loaded. Please try again.');
+      } finally {
+        if (active) setLikedVideosLoading(false);
+      }
+    };
+
+    fetchLikedVideos();
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   const handleProfileSave = async (event: FormEvent<HTMLFormElement>) => {
@@ -134,9 +168,24 @@ export default function ProfilePage({
                 </button>
               </div>
               {ownVideos.length ? (
-                <VideoGrid videos={ownVideos} />
+                <VideoGrid videos={ownVideos} onVideoClick={onVideoClick} />
               ) : (
                 <p className="profile-empty-state">You haven’t uploaded any videos yet.</p>
+              )}
+            </section>
+
+            <hr className="profile-divider" />
+
+            <section className="profile-videos" aria-labelledby="liked-videos-heading">
+              <h2 id="liked-videos-heading">Liked videos</h2>
+              {likedVideosLoading ? (
+                <p role="status">Loading liked videos...</p>
+              ) : likedVideosError ? (
+                <p role="alert">{likedVideosError}</p>
+              ) : likedVideos.length ? (
+                <VideoGrid videos={likedVideos} onVideoClick={onVideoClick} />
+              ) : (
+                <p className="profile-empty-state">You haven’t liked any videos yet.</p>
               )}
             </section>
 

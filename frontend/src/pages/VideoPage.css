@@ -71,6 +71,11 @@
   padding: 6px;
 }
 
+.like-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .like-button:hover,
 .like-button:focus-visible {
   color: #d32f2f;
@@ -91,6 +96,12 @@
 
 .like-button--active .like-icon {
   fill: currentColor;
+}
+
+.video-like-error {
+  margin: 0 0 12px;
+  color: #d93025;
+  font-size: 14px;
 }
 
 .video-description {
