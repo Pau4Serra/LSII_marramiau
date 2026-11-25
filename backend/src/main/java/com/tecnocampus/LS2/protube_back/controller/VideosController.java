@@ -1,9 +1,12 @@
 package com.tecnocampus.LS2.protube_back.controller;
 
 import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.UpdateVideoMetadataRequestDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import com.tecnocampus.LS2.protube_back.services.VideoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +32,12 @@ public class VideosController {
     @GetMapping("/{videoId}")
     public ResponseEntity<PublicVideoResponseDTO> getVideo(@PathVariable UUID videoId) {
         return ResponseEntity.of(videoService.findVideoById(videoId));
+    }
+
+    @PostMapping("/{videoId}/views")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void recordView(@PathVariable UUID videoId) {
+        videoService.recordView(videoId);
     }
 
     @GetMapping("/search/{query}")
@@ -57,5 +66,13 @@ public class VideosController {
     @PatchMapping("/{videoId}")
     public ResponseEntity<String> deleteVideo(@PathVariable String videoId) {
         return ResponseEntity.ok().body("Video deleted successfully");
+    }
+
+    @PatchMapping("/{videoId}/metadata")
+    public PublicVideoResponseDTO updateMetadata(
+            @PathVariable UUID videoId,
+            @Valid @RequestBody UpdateVideoMetadataRequestDTO request,
+            @AuthenticationPrincipal OidcUser user) {
+        return videoService.updateMetadata(videoId, user.getSubject(), request);
     }
 }

@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -64,6 +66,11 @@ public class Video {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private List<Tag> tags = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "video_tag_labels", joinColumns = @JoinColumn(name = "video_id"))
+    @Column(name = "label", nullable = false, length = 100)
+    private Set<String> tagLabels = new LinkedHashSet<>();
 
     @OneToMany(
             mappedBy = "video",

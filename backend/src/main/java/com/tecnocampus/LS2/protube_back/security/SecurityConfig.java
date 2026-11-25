@@ -52,6 +52,7 @@ public class SecurityConfig {
                         "/api/videos/*/comments",
                         "/api/videos/*/like"
                 ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/videos/*/views").permitAll()
                 .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/media/**").permitAll()
                 .anyRequest().authenticated()
