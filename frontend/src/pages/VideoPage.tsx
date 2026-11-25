@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import VideoCard from '../components/VideoCard';
+import CommentSection from '../components/CommentSection';
 import { getEnv } from '../utils/Env';
 import { useAllVideos } from '../useAllVideos';
 import { User } from '../types/user';
@@ -156,6 +157,7 @@ export default function VideoPage({
                 </summary>
                 <p>{video.description || 'No description available.'}</p>
               </details>
+              <CommentSection videoId={videoId} user={user} onLoginClick={onLoginClick} />
             </article>
 
             <aside className="video-recommendations" aria-label="Recommended videos">

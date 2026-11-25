@@ -1,0 +1,173 @@
+.comment-section {
+  margin-top: 24px;
+  color: var(--app-text);
+}
+
+.comment-section h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--muted-text);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.comment-form button,
+.comment-login button {
+  border: 0;
+  border-radius: 18px;
+  padding: 8px 16px;
+  background: var(--panel-background);
+  color: var(--app-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.comment-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.comment-login {
+  color: var(--muted-text);
+}
+
+.comment-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.comment-avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--panel-background);
+  object-fit: cover;
+  font-weight: 600;
+}
+
+.comment-meta {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.comment-meta span {
+  color: var(--muted-text);
+}
+
+.comment-content {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-reply-button {
+  margin-top: 4px;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--muted-text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.comment-body .comment-form {
+  margin: 8px 0 12px;
+}
+
+.comment-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.comment-replies {
+  margin-top: 12px;
+}
+
+.comment-item--reply {
+  margin-bottom: 12px;
+}
+
+.comment-item--reply .comment-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.comment-actions .comment-reply-button {
+  margin-top: 0;
+}
+
+.comment-like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--muted-text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.comment-like-button:hover,
+.comment-like-button:focus-visible {
+  color: #d32f2f;
+}
+
+.comment-like-button--active {
+  color: #e53935;
+}
+
+.comment-like-icon {
+  width: 16px;
+  height: 16px;
+  fill: transparent;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.comment-like-button--active .comment-like-icon {
+  fill: currentColor;
+}
