@@ -133,6 +133,14 @@ public class VideoService {
 
     // ENTITY TO RESPONSE DTO
 
+    @Transactional(readOnly = true)
+    public List<PublicVideoResponseDTO> getLikedVideos(String googleSubject) {
+        return videoRepository.findLikedVideosByGoogleSubject(googleSubject, VideoStatus.ACTIVE)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private PublicVideoResponseDTO mapToResponse(Video video) {
         return new PublicVideoResponseDTO(
                 video.getId(),
