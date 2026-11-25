@@ -108,6 +108,12 @@ function App() {
 
   const handleProfileUpdate = (updatedUser: User) => setCurrentUser(updatedUser);
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    window.history.pushState({}, '', '/');
+    setPath('/');
+  };
+
   const toggleTheme = () => setDarkMode((isDarkMode) => !isDarkMode);
   const videoMatch = path.match(/^\/videos\/([^/]+)$/);
 
@@ -123,6 +129,7 @@ function App() {
           onToggleTheme={toggleTheme}
           onSearch={handleSearch}
           onProfileClick={handleProfileClick}
+          onLogout={handleLogout}
         />
       ) : videoMatch ? (
         <VideoPage

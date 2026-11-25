@@ -16,6 +16,7 @@ interface ProfilePageProps {
   onToggleTheme: () => void;
   onSearch: (query: string) => void;
   onProfileClick: () => void;
+  onLogout: () => void;
 }
 
 export default function ProfilePage({
@@ -27,12 +28,15 @@ export default function ProfilePage({
   onToggleTheme,
   onSearch,
   onProfileClick,
+  onLogout,
 }: ProfilePageProps) {
   const [name, setName] = useState(user?.name ?? '');
   const [lastname, setLastname] = useState(user?.lastname ?? '');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
 
   useEffect(() => {
     setName(user?.name ?? '');
@@ -60,6 +64,19 @@ export default function ProfilePage({
       setSaveError('Your profile could not be saved. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    setLogoutError('');
+    try {
+      // El backend invalida la sessió i esborra la cookie JSESSIONID (respon 204)
+      await axios.post(`${getEnv().API_BASE_URL}/auth/logout`, null, { withCredentials: true });
+      onLogout();
+    } catch {
+      setLogoutError('You could not be logged out. Please try again.');
+      setLoggingOut(false);
     }
   };
 
@@ -123,9 +140,15 @@ export default function ProfilePage({
               )}
             </section>
 
-            <button type="button" className="profile-logout-button">
-              Log out
+            <button
+              type="button"
+              className="profile-logout-button"
+              onClick={handleLogout}
+              disabled={loggingOut}
+            >
+              {loggingOut ? 'Logging out...' : 'Log out'}
             </button>
+            {logoutError && <p className="profile-error-message" role="alert">{logoutError}</p>}
           </>
         )}
       </main>
