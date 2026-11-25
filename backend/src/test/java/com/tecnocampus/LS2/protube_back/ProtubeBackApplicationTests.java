@@ -9,7 +9,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
+@org.springframework.test.context.ActiveProfiles("dev")
 class ProtubeBackApplicationTests {
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private org.springframework.security.oauth2.client.registration.ClientRegistrationRepository registrations;
 
     @Autowired
     private VideoService videoService;

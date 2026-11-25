@@ -8,6 +8,11 @@ class IndexControllerTest {
     IndexController indexController = new IndexController();
 
     @Test
+    void servesTheReactEntryPointForApiDocumentation() {
+        assertEquals("forward:/index.html", indexController.apiDocs());
+    }
+
+    @Test
     void home() {
 
         assertEquals("index", indexController.home().getViewName());

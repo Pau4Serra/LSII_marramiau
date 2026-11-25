@@ -12,6 +12,11 @@ public class IndexController {
     public ModelAndView home() {
         return new ModelAndView("index");
     }
+    @GetMapping({"/docs", "/docs/"})
+    public String apiDocs() {
+        return "forward:/index.html";
+    }
+
     @PostMapping("logout")
     public ModelAndView logout() {
         return new ModelAndView("logout");
