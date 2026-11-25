@@ -1,84 +1,103 @@
 package com.tecnocampus.LS2.protube_back.services;
 
+import com.tecnocampus.LS2.protube_back.model.User;
+import com.tecnocampus.LS2.protube_back.model.Video;
 import com.tecnocampus.LS2.protube_back.model.VideoStatus;
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.VideoMetadataRequestDTO;
+import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VideoServiceTest {
-
     @Mock
     VideoRepository videoRepository;
 
-    @Test
-    void videoStatusValuesAreAvailable() {
-        assertEquals(2, VideoStatus.values().length);
-        assertEquals(VideoStatus.ACTIVE, VideoStatus.valueOf("ACTIVE"));
-    }
+    @Mock
+    UserRepository userRepository;
+
+    @Mock
+    OciMediaClientService ociMediaClientService;
+
+    @InjectMocks
+    VideoService videoService;
 
     @Test
-    void getVideosReturnsEmptyWhenNoMetadataFiles(@TempDir Path storeDirectory) {
-        VideoService videoService = createService(storeDirectory);
-
-        assertTrue(Files.isDirectory(storeDirectory));
+    void getVideosReturnsEmptyWhenNoVideosAreActive() {
+        when(videoRepository.findByStatus(VideoStatus.ACTIVE)).thenReturn(List.of());
         assertEquals(List.of(), videoService.getVideos());
     }
 
     @Test
-    void mapsMetadataAndSupportsSearchAndLookup(@TempDir Path storeDirectory) throws Exception {
-        Files.writeString(storeDirectory.resolve("1.json"), metadataJson(1, "First video", "First description"), StandardCharsets.UTF_8);
-        Files.writeString(storeDirectory.resolve("2.json"), metadataJson(2, "Second video", "Second description"), StandardCharsets.UTF_8);
-        VideoService videoService = createService(storeDirectory);
+    void mapsActiveVideosAndSupportsSearchAndLookup() {
+        var channel = new User();
+        channel.setName("Test Channel");
+        var video = new Video();
+        video.setId(UUID.randomUUID());
+        video.setTitle("First video");
+        video.setDuration(125);
+        video.setChannel(channel);
 
-        assertEquals(2, videoService.getVideos().size());
-        assertEquals(1, videoService.findVideosByName("First").size());
-        assertEquals(2, videoService.findVideosByName("  ").size());
+        when(videoRepository.findByStatus(VideoStatus.ACTIVE)).thenReturn(List.of(video));
+        when(videoRepository.findByTitleContainingIgnoreCaseAndStatus("First", VideoStatus.ACTIVE))
+                .thenReturn(List.of(video));
+        when(videoRepository.findByIdAndStatus(video.getId(), VideoStatus.ACTIVE)).thenReturn(Optional.of(video));
 
-        UUID firstId = videoService.getVideos().get(0).id();
-        assertTrue(videoService.findVideoById(firstId).isPresent());
+        var response = videoService.getVideos().getFirst();
+        assertEquals("First video", response.title());
+        assertEquals("Test Channel", response.channelName());
+        assertEquals(List.of(response), videoService.findVideosByName(" First "));
+        assertEquals(List.of(response), videoService.findVideosByName("  "));
+        assertEquals(Optional.of(response), videoService.findVideoById(video.getId()));
         assertTrue(videoService.findVideoById(UUID.randomUUID()).isEmpty());
     }
 
-    private VideoService createService(Path storeDirectory) {
-        VideoService videoService = new VideoService(videoRepository);
-        ReflectionTestUtils.setField(videoService, "videoSource", storeDirectory.toString());
-        ReflectionTestUtils.setField(videoService, "metadataSource", "test-catalog");
-        return videoService;
-    }
+    @Test
+    void savesUploadedVideoAndReturnsItsMediaUrl() {
+        var principal = mock(OidcUser.class);
+        var now = Instant.now();
+        var idToken = new OidcIdToken("id-token", now, now.plusSeconds(60), Map.of("sub", "google-subject"));
+        when(principal.getSubject()).thenReturn("google-subject");
+        when(principal.getIdToken()).thenReturn(idToken);
 
-    private String metadataJson(int id, String title, String description) {
-        return """
-                {
-                  "id": %d,
-                  "duration": 125.4,
-                  "title": "%s",
-                  "user": "test-user",
-                  "timestamp": 1700000000,
-                  "meta": {
-                    "description": "%s",
-                    "categories": ["Music"],
-                    "tags": ["tag"],
-                    "view_count": 42,
-                    "like_count": 7,
-                    "channel": "Test Channel",
-                    "channel_follower_count": 100
-                  }
-                }
-                """.formatted(id, title, description);
-    }
+        var channel = new User();
+        channel.setName("Test Channel");
+        var file = new MockMultipartFile("file", new byte[] {1});
+        var media = new OciMediaClientService.UploadResponse("media-id", "https://example.com/video.mp4");
+        when(userRepository.findUserByGoogleSubject("google-subject")).thenReturn(channel);
+        when(ociMediaClientService.upload(file, "id-token")).thenReturn(media);
+        when(videoRepository.save(any(Video.class))).thenAnswer(invocation -> {
+            Video video = invocation.getArgument(0);
+            assertEquals(VideoStatus.ACTIVE, video.getStatus());
+            assertEquals(channel, video.getChannel());
+            return video;
+        });
 
+        var metadata = new VideoMetadataRequestDTO("Description", List.of(), List.of(), 0L, 0, "", 0);
+        var response = videoService.uploadVideo(new CreateVideoRequestDTO("Video", 25, "thumbnail", metadata),
+                file, principal);
+
+        assertEquals(media.url(), response.videoUrl());
+        assertEquals(channel.getName(), response.channelName());
+    }
 }

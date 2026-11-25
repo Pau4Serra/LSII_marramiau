@@ -8,6 +8,7 @@ import com.tecnocampus.LS2.protube_back.model.VideoStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
@@ -21,6 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest(showSql = false)
 @ActiveProfiles("dev")
 class CommentRepositoryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Autowired
     private CommentRepository comments;
@@ -42,6 +46,7 @@ class CommentRepositoryTest {
         Comment reply = saveComment(video, "Reply", Instant.parse("2026-01-03T00:00:00Z"));
         reply.setParent(newer);
         comments.saveAndFlush(reply);
+        entityManager.clear();
 
         List<Comment> roots = comments.findByVideo_IdAndParentIsNullOrderByCreatedAtDesc(video.getId());
 
