@@ -169,6 +169,22 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+.navbar-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.navbar-profile-btn:focus-visible {
+  outline: 2px solid #4b83d1;
+  outline-offset: 4px;
+}
+
 .navbar-avatar-placeholder {
   width: 42px;
   height: 42px;

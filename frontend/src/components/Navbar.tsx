@@ -6,11 +6,19 @@ interface NavbarProps {
   user?: User | null;
   onSearch?: (query: string) => void;
   onLoginClick?: () => void;
+  onProfileClick?: () => void;
   darkMode?: boolean;
   onToggleTheme?: () => void;
 }
 
-export const Navbar = ({ user, onSearch, onLoginClick, darkMode = false, onToggleTheme }: NavbarProps) => {
+export const Navbar = ({
+  user,
+  onSearch,
+  onLoginClick,
+  onProfileClick,
+  darkMode = false,
+  onToggleTheme,
+}: NavbarProps) => {
   const [query, setQuery] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -86,13 +94,19 @@ export const Navbar = ({ user, onSearch, onLoginClick, darkMode = false, onToggl
               Log in
             </button>
           ) : null}
-          {user?.pictureUrl ? (
-            <img
-              src={user.pictureUrl}
-              alt={user.name || 'User avatar'}
-              className="navbar-avatar-img"
-              referrerPolicy="no-referrer"
-            />
+          {user ? (
+            <button type="button" className="navbar-profile-btn" onClick={onProfileClick} aria-label="View profile">
+              {user.pictureUrl ? (
+                <img
+                  src={user.pictureUrl}
+                  alt={user.name || 'User avatar'}
+                  className="navbar-avatar-img"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className="navbar-avatar-placeholder" aria-hidden="true" />
+              )}
+            </button>
           ) : (
             <div className="navbar-avatar-placeholder" aria-label="User avatar" />
           )}

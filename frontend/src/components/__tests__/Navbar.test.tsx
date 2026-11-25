@@ -72,6 +72,21 @@ describe('Navbar component', () => {
     expect(avatarImg).toHaveAttribute('referrerPolicy', 'no-referrer');
   });
 
+  it('opens the profile when the logged-in user clicks their avatar', () => {
+    const handleProfileClick = jest.fn();
+    const mockUser: User = {
+      id: '123',
+      name: 'John',
+      email: 'john@example.com',
+      pictureUrl: 'https://example.com/avatar.jpg',
+    };
+
+    render(<Navbar user={mockUser} onProfileClick={handleProfileClick} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /view profile/i }));
+    expect(handleProfileClick).toHaveBeenCalledTimes(1);
+  });
+
   it('renders avatar placeholder and hides login button when user has no pictureUrl', () => {
     const mockUser: User = {
       id: '456',
