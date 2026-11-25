@@ -26,6 +26,9 @@ class CommentRepositoryTest {
     private CommentRepository comments;
 
     @Autowired
+    private org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager entityManager;
+
+    @Autowired
     private CommentLikeRepository commentLikes;
 
     @Autowired
@@ -42,6 +45,7 @@ class CommentRepositoryTest {
         Comment reply = saveComment(video, "Reply", Instant.parse("2026-01-03T00:00:00Z"));
         reply.setParent(newer);
         comments.saveAndFlush(reply);
+        entityManager.clear();
 
         List<Comment> roots = comments.findByVideo_IdAndParentIsNullOrderByCreatedAtDesc(video.getId());
 

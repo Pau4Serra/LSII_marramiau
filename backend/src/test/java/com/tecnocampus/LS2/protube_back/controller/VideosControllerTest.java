@@ -41,6 +41,11 @@ class VideosControllerTest {
     void searchAndUploadEndpointsReturnExpectedResponses() {
         when(videoService.findVideosByName("test")).thenReturn(List.of());
         assertEquals(List.of(), videosController.getVideosByName("test").getBody());
-        assertEquals("Video uploaded successfully", videosController.uploadVideo().getBody());
+        var metadata = new com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO("Video", 25, "cover", null);
+        var file = new org.springframework.mock.web.MockMultipartFile("file", new byte[] {1});
+        var user = org.mockito.Mockito.mock(org.springframework.security.oauth2.core.oidc.user.OidcUser.class);
+        assertEquals(201, videosController.uploadVideo(metadata, file, user).getStatusCode().value());
+        org.mockito.Mockito.verify(videoService).uploadVideo(metadata, file, user);
+        assertEquals(200, videosController.deleteVideo("video-id").getStatusCode().value());
     }
 }

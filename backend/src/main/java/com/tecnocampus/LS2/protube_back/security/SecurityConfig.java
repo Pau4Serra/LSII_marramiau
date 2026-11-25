@@ -42,6 +42,10 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers(
                         HttpMethod.GET,
+                        "/docs",
+                        "/docs/",
+                        "/index.html",
+                        "/assets/**",
                         "/api/videos",
                         "/api/videos/search/{query}",
                         "/api/videos/{videoId}",
@@ -51,6 +55,15 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .successHandler(googleLoginSuccessHandler)
+            )
+            .logout(logout -> logout
+                    .logoutUrl("/api/auth/logout")
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
+                    .logoutSuccessHandler((request, response, authentication) ->
+                            response.setStatus(204)
+                    )
             );
         return http.build();
     }
