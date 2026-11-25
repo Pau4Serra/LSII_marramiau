@@ -177,3 +177,20 @@
     padding-right: 0;
   }
 }
+
+/* Botó de tornar amb la fletxa a l'esquerra del text */
+.video-page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.video-page-back-icon {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.video-page-back:hover .video-page-back-icon,
+.video-page-back:focus-visible .video-page-back-icon {
+  transform: translateX(-2px);
+}

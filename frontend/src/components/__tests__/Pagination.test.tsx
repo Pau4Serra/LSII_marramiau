@@ -15,8 +15,8 @@ describe('Pagination component', () => {
     const onPageChange = jest.fn();
     render(<Pagination currentPage={1} totalPages={3} onPageChange={onPageChange} />);
 
-    const prevBtn = screen.getByRole('button', { name: 'Pàgina anterior' });
-    const nextBtn = screen.getByRole('button', { name: 'Pàgina següent' });
+    const prevBtn = screen.getByRole('button', { name: 'Previous page' });
+    const nextBtn = screen.getByRole('button', { name: 'Next page' });
 
     expect(prevBtn).toBeDisabled();
     expect(nextBtn).toBeEnabled();
@@ -40,8 +40,8 @@ describe('Pagination component', () => {
     const onPageChange = jest.fn();
     render(<Pagination currentPage={3} totalPages={3} onPageChange={onPageChange} />);
 
-    const prevBtn = screen.getByRole('button', { name: 'Pàgina anterior' });
-    const nextBtn = screen.getByRole('button', { name: 'Pàgina següent' });
+    const prevBtn = screen.getByRole('button', { name: 'Previous page' });
+    const nextBtn = screen.getByRole('button', { name: 'Next page' });
 
     expect(prevBtn).toBeEnabled();
     expect(nextBtn).toBeDisabled();

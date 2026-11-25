@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import VideoCard from '../components/VideoCard';
@@ -74,6 +74,7 @@ export default function VideoPage({
   const [likeUpdating, setLikeUpdating] = useState(false);
   const [likeError, setLikeError] = useState('');
   const { value: videos } = useAllVideos();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -119,6 +120,27 @@ export default function VideoPage({
       active = false;
     };
   }, [videoId, user?.id]);
+
+  // Autoplay en obrir el vídeo: primer amb so; si el navegador ho bloqueja, en silenci.
+  useEffect(() => {
+    const player = videoRef.current;
+    if (!player || loading || error) return;
+
+    const tryPlay = () => {
+      try {
+        return Promise.resolve(player.play());
+      } catch (playError) {
+        return Promise.reject(playError);
+      }
+    };
+
+    tryPlay().catch(() => {
+      player.muted = true;
+      tryPlay().catch(() => {
+        // El navegador no permet l'autoplay: l'usuari pot fer play manualment.
+      });
+    });
+  }, [video, loading, error]);
 
   const goHome = () => {
     window.history.pushState({}, '', '/');
@@ -167,6 +189,24 @@ export default function VideoPage({
       />
       <main className="video-page">
         <button type="button" className="video-page-back" onClick={goHome}>
+          {/* Fletxa cap a l'esquerra, només decorativa */}
+          <svg
+            className="video-page-back-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+            data-testid="back-arrow-icon"
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
           Back to videos
         </button>
 
@@ -177,8 +217,11 @@ export default function VideoPage({
           <div className="video-watch-layout">
             <article className="video-main-column">
               <video
+                ref={videoRef}
                 className="video-player"
                 controls
+                autoPlay
+                playsInline
                 poster={video.thumbnail ? resolveMediaUrl(video.thumbnail) : undefined}
                 src={resolveMediaUrl(video.videoUrl)}
               >

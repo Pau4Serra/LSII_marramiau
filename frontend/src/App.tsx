@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
 import VideoGrid from './components/VideoGrid';
+import NoSearchResults from './components/NoSearchResults';
 import { useAllVideos } from './useAllVideos';
 import VideoPage from './pages/VideoPage';
 import ProfilePage from './pages/ProfilePage';
@@ -20,6 +21,7 @@ function HomePage({
   onProfileClick,
   videos,
   loading,
+  searchQuery,
 }: {
   user: User | null;
   onLoginClick: () => void;
@@ -29,7 +31,11 @@ function HomePage({
   onProfileClick: () => void;
   videos: ReturnType<typeof useAllVideos>['value'];
   loading: ReturnType<typeof useAllVideos>['loading'];
+  searchQuery?: string;
 }) {
+  // Si la cerca ha acabat i no ha retornat cap vídeo, es mostra l'estat buit en lloc de la graella
+  const showNoResults = loading === 'success' && videos.length === 0 && Boolean(searchQuery?.trim());
+
   return (
     <>
       <Navbar
@@ -41,14 +47,18 @@ function HomePage({
         onProfileClick={onProfileClick}
       />
       <main className="App-main">
-        <VideoGrid
-          videos={videos.length > 0 ? videos : undefined}
-          loading={loading === 'loading'}
-          onVideoClick={(video) => {
-            window.history.pushState({}, '', `/videos/${video.id}`);
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }}
-        />
+        {showNoResults ? (
+          <NoSearchResults query={searchQuery} />
+        ) : (
+          <VideoGrid
+            videos={videos.length > 0 ? videos : undefined}
+            loading={loading === 'loading'}
+            onVideoClick={(video) => {
+              window.history.pushState({}, '', `/videos/${video.id}`);
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }}
+          />
+        )}
       </main>
     </>
   );
@@ -58,7 +68,7 @@ function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) === 'true');
-  const { value: videos, loading, searchVideos } = useAllVideos();
+  const { value: videos, loading, searchQuery, searchVideos } = useAllVideos();
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, String(darkMode));
@@ -158,6 +168,7 @@ function App() {
           onProfileClick={handleProfileClick}
           videos={videos}
           loading={loading}
+          searchQuery={searchQuery}
         />
       )}
     </div>

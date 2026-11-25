@@ -88,3 +88,9 @@
     padding: 0 6px;
   }
 }
+
+/* Mode fosc: el botó actiu (negre) porta la mateixa vora d'1px, però blanca, perquè no es confongui amb el fons.
+   El hover és el mateix que en mode clar. */
+.App--dark .pagination-btn--active {
+  border-color: #ffffff;
+}

@@ -8,7 +8,10 @@ jest.mock('axios');
 jest.mock('../../useAllVideos', () => ({
   useAllVideos: () => ({ value: [] }),
 }));
-jest.mock('../../components/CommentSection', () => () => <div />);
+jest.mock('../../components/CommentSection', () => ({
+  __esModule: true,
+  default: () => <div />,
+}));
 
 const user: User = {
   id: 'user-1',
@@ -25,6 +28,7 @@ const video = {
 
 describe('VideoPage likes', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.mocked(axios.get)
       .mockResolvedValueOnce({ data: video })
       .mockResolvedValueOnce({ data: { likeCount: 4, likedByCurrentUser: false } });
@@ -70,5 +74,55 @@ describe('VideoPage likes', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Like video' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not update the video like.');
+  });
+});
+
+describe('VideoPage autoplay', () => {
+  beforeEach(() => {
+    jest.mocked(axios.get)
+      .mockResolvedValueOnce({ data: video })
+      .mockResolvedValueOnce({ data: { likeCount: 4, likedByCurrentUser: false } });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('starts playing the video with sound when the page opens', async () => {
+    const play = jest.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    const { container } = render(<VideoPage videoId="video-1" user={user} />);
+
+    await waitFor(() => expect(play).toHaveBeenCalledTimes(1));
+    const player = container.querySelector('video') as HTMLVideoElement;
+    expect(player).toHaveAttribute('autoplay');
+    expect(player.muted).toBe(false);
+  });
+
+  it('falls back to muted autoplay when the browser blocks playback with sound', async () => {
+    const play = jest.spyOn(HTMLMediaElement.prototype, 'play')
+      .mockRejectedValueOnce(new DOMException('blocked', 'NotAllowedError'))
+      .mockResolvedValueOnce(undefined);
+    const { container } = render(<VideoPage videoId="video-1" user={user} />);
+
+    await waitFor(() => expect(play).toHaveBeenCalledTimes(2));
+    const player = container.querySelector('video') as HTMLVideoElement;
+    expect(player.muted).toBe(true);
+  });
+});
+
+describe('VideoPage back button', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(axios.get).mockResolvedValue({ data: video });
+  });
+
+  it('shows a decorative left arrow before the "Back to videos" text', () => {
+    render(<VideoPage videoId="video-1" user={user} />);
+
+    const backButton = screen.getByRole('button', { name: 'Back to videos' });
+    const arrow = screen.getByTestId('back-arrow-icon');
+    expect(backButton).toContainElement(arrow);
+    expect(backButton.firstElementChild).toBe(arrow);
+    expect(arrow).toHaveAttribute('aria-hidden', 'true');
   });
 });

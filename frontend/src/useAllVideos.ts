@@ -48,12 +48,15 @@ export function useAllVideos() {
   const [value, setValue] = useState<Video[]>([]);
   const [message, setMessage] = useState<string>('Loading...');
   const [loading, setLoading] = useState<LoadingState>('idle');
+  // Últim terme de cerca enviat (buit si es mostren tots els vídeos)
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Funció per carregar tots els vídeos o fer la cerca al backend segons si s'especifica `query`
   const fetchVideos = useCallback(async (query?: string) => {
     try {
       setLoading('loading');
       const trimmedQuery = query?.trim();
+      setSearchQuery(trimmedQuery ?? '');
       // Si hi ha terme de cerca, consulta a l'endpoint de cerca (/search/{query}); altrament, consulta el llistat complet (/videos)
       const url = trimmedQuery ? `${ALL_VIDEOS_URL}/search/${encodeURIComponent(trimmedQuery)}` : ALL_VIDEOS_URL;
 
@@ -73,5 +76,5 @@ export function useAllVideos() {
     fetchVideos();
   }, [fetchVideos]);
 
-  return { value, message, loading, searchVideos: fetchVideos };
+  return { value, message, loading, searchQuery, searchVideos: fetchVideos };
 }
