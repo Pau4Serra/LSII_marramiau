@@ -47,6 +47,8 @@ public class SecurityConfig {
                         "/api/videos/{videoId}",
                         "/api/videos/*/comments"
                 ).permitAll()
+                .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/media/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
@@ -67,10 +69,11 @@ public class SecurityConfig {
 
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT",
-                "PATCH", "DELETE", "OPTIONS"
+                "PATCH", "DELETE", "OPTIONS", "HEAD"
         ));
 
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Accept-Ranges", "Content-Range"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
@@ -78,6 +81,7 @@ public class SecurityConfig {
 
         source.registerCorsConfiguration("/api/**", config);
         source.registerCorsConfiguration("/auth/**", config);
+        source.registerCorsConfiguration("/media/**", config);
 
         return source;
     }
