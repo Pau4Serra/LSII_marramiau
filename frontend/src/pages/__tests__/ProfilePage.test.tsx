@@ -28,6 +28,7 @@ const defaultProps = {
   onSearch: jest.fn(),
   onProfileClick: jest.fn(),
   onLogout: jest.fn(),
+  onUploadClick: jest.fn(),
 };
 
 describe('ProfilePage', () => {

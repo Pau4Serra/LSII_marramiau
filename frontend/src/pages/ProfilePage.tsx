@@ -18,6 +18,7 @@ interface ProfilePageProps {
   onProfileClick: () => void;
   onLogout: () => void;
   onVideoClick: (video: Video) => void;
+  onUploadClick: () => void;
 }
 
 export default function ProfilePage({
@@ -31,6 +32,7 @@ export default function ProfilePage({
   onProfileClick,
   onLogout,
   onVideoClick,
+  onUploadClick,
 }: ProfilePageProps) {
   const [name, setName] = useState(user?.name ?? '');
   const [lastname, setLastname] = useState(user?.lastname ?? '');
@@ -163,7 +165,7 @@ export default function ProfilePage({
             <section className="profile-videos" aria-labelledby="profile-videos-heading">
               <div className="profile-videos-header">
                 <h2 id="profile-videos-heading">Your videos</h2>
-                <button type="button" className="profile-primary-button">
+                <button type="button" className="profile-primary-button" onClick={onUploadClick}>
                   Upload video
                 </button>
               </div>
