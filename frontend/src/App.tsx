@@ -6,6 +6,7 @@ import NoSearchResults from './components/NoSearchResults';
 import { useAllVideos } from './useAllVideos';
 import VideoPage from './pages/VideoPage';
 import ProfilePage from './pages/ProfilePage';
+import UploadPage from './pages/UploadPage';
 import { getEnv } from './utils/Env';
 import { User } from './types/user';
 import axios from 'axios';
@@ -116,6 +117,11 @@ function App() {
     setPath('/profile');
   };
 
+  const handleUploadClick = () => {
+    window.history.pushState({}, '', '/upload');
+    setPath('/upload');
+  };
+
   const handleVideoClick = (video: { id: string | number }) => {
     const videoPath = `/videos/${video.id}`;
     window.history.pushState({}, '', videoPath);
@@ -147,6 +153,16 @@ function App() {
           onProfileClick={handleProfileClick}
           onLogout={handleLogout}
           onVideoClick={handleVideoClick}
+          onUploadClick={handleUploadClick}
+        />
+      ) : path === '/upload' ? (
+        <UploadPage
+          user={currentUser}
+          onLoginClick={handleLoginClick}
+          onProfileClick={handleProfileClick}
+          onSearch={handleSearch}
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
         />
       ) : videoMatch ? (
         <VideoPage
