@@ -3,6 +3,7 @@ package com.tecnocampus.LS2.protube_back.controller;
 
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.UserResponseDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.VideoAnalyticsResponseDTO;
 import com.tecnocampus.LS2.protube_back.services.UserService;
 import com.tecnocampus.LS2.protube_back.services.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,11 @@ public class UserController {
     @GetMapping("/me/liked-videos")
     public List<PublicVideoResponseDTO> getLikedVideos(@AuthenticationPrincipal OidcUser oidcUser) {
         return videoService.getLikedVideos(oidcUser.getSubject());
+    }
+
+    @GetMapping("/me/video-analytics")
+    public List<VideoAnalyticsResponseDTO> getVideoAnalytics(@AuthenticationPrincipal OidcUser oidcUser) {
+        return videoService.getAnalytics(oidcUser.getSubject());
     }
 
     @PatchMapping("/{userId}")

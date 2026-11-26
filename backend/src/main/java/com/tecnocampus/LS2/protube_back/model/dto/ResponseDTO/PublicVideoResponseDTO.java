@@ -18,5 +18,6 @@ public record PublicVideoResponseDTO(
     List<Category> categories,
     //List<Comment> comments,
     Instant uploadDate,
-    String videoUrl
+    String videoUrl,
+    List<String> tags
 ) {}

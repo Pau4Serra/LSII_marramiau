@@ -3,7 +3,9 @@ package com.tecnocampus.LS2.protube_back.services;
 
 import com.tecnocampus.LS2.protube_back.model.*;
 import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.UpdateVideoMetadataRequestDTO;
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
+import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.VideoAnalyticsResponseDTO;
 import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
 
@@ -15,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -141,6 +145,42 @@ public class VideoService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<VideoAnalyticsResponseDTO> getAnalytics(String googleSubject) {
+        return videoRepository.getAnalyticsByOwner(googleSubject);
+    }
+
+    @Transactional
+    public void recordView(UUID videoId) {
+        if (videoRepository.incrementViewCount(videoId, VideoStatus.ACTIVE) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Active video not found");
+        }
+    }
+
+    @Transactional
+    public PublicVideoResponseDTO updateMetadata(UUID videoId, String subject, UpdateVideoMetadataRequestDTO request) {
+        Video video = videoRepository.findActiveVideoForUpdate(videoId, VideoStatus.ACTIVE)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active video not found"));
+        if (!video.getChannel().getGoogleSubject().equals(subject)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the video owner can edit metadata");
+        }
+
+        if (request.title() != null) {
+            video.setTitle(request.title().strip());
+        }
+        if (request.description() != null) {
+            video.setDescription(request.description());
+        }
+        if (request.categories() != null) {
+            video.setCategories(new ArrayList<>(new LinkedHashSet<>(request.categories())));
+        }
+        if (request.tags() != null) {
+            video.getTagLabels().clear();
+            request.tags().stream().map(String::strip).forEach(video.getTagLabels()::add);
+        }
+        return mapToResponse(video);
+    }
+
     private PublicVideoResponseDTO mapToResponse(Video video) {
         return new PublicVideoResponseDTO(
                 video.getId(),
@@ -153,7 +193,8 @@ public class VideoService {
                 video.getLikeCount(),
                 video.getCategories(),
                 video.getUploadDate(),
-                video.getVideoUrl()
+                video.getVideoUrl(),
+                video.getTagLabels().stream().sorted().toList()
         );
     }
 }

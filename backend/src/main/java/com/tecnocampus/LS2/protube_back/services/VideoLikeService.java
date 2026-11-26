@@ -47,7 +47,7 @@ public class VideoLikeService {
         }
 
         // Serialize like changes and counter updates for this video.
-        Video video = videos.findActiveVideoForLike(videoId, VideoStatus.ACTIVE)
+        Video video = videos.findActiveVideoForUpdate(videoId, VideoStatus.ACTIVE)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found"));
         var existing = likes.findByVideo_IdAndUser_Id(videoId, user.getId());
         if (existing.isPresent() == liked) {
