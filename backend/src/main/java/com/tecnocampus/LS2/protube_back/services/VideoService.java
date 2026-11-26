@@ -6,6 +6,7 @@ import com.tecnocampus.LS2.protube_back.model.dto.RequestDTO.CreateVideoRequestD
 import com.tecnocampus.LS2.protube_back.model.dto.ResponseDTO.PublicVideoResponseDTO;
 import com.tecnocampus.LS2.protube_back.persistance.UserRepository;
 import com.tecnocampus.LS2.protube_back.persistance.VideoRepository;
+import com.tecnocampus.LS2.protube_back.services.media.MediaStorageContext;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -22,70 +23,111 @@ import java.util.UUID;
 @Service
 public class VideoService {
 
-    @Autowired
     private final VideoRepository videoRepository;
     private final UserRepository userRepository;
-    private final OciMediaClientService ociMediaClientService;
+    private final MediaStorageContext media;
 
     public VideoService(
             VideoRepository videoRepository,
             UserRepository userRepository,
-            OciMediaClientService ociMediaClientService) {
+            MediaStorageContext media) {
 
         this.videoRepository = videoRepository;
         this.userRepository = userRepository;
-        this.ociMediaClientService = ociMediaClientService;
+        this.media = media;
     }
 
     // UPLOAD VIDEO
 
-    @Transactional
     public PublicVideoResponseDTO uploadVideo(
             CreateVideoRequestDTO request,
             MultipartFile file,
+            MultipartFile thumbnail,
             OidcUser principal) {
-
-        User user = userRepository.findUserByGoogleSubject(
-                principal.getSubject()
-        );
-
+        String subject = requireSubject(principal);
+        validateUpload(request, file, thumbnail);
+        User user = userRepository.findUserByGoogleSubject(subject);
         if (user == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
-
-        // Upload to OCI
-        OciMediaClientService.UploadResponse uploaded =
-                ociMediaClientService.upload(
-                        file,
-                        principal.getIdToken().getTokenValue()
-                );
-
-        // Build Video entity and save to database
         Video video = new Video();
-
-        video.setTitle(request.title());
+        UUID id = video.getId();
+        video.setTitle(request.title().strip());
         video.setDescription(request.meta().description());
         video.setDuration(request.duration());
-        video.setThumbnail(request.thumbnail());
-
-        video.setCategories(
-                Category.fromMetadataList(
-                        request.meta().categories()
-                )
-        );
-
+        video.setCategories(Category.fromMetadataList(request.meta().categories()));
         video.setChannel(user);
-        video.setVideoUrl(uploaded.url());
+        video.setVideoUrl(media.videoUrl(id));
+        video.setThumbnail(media.thumbnailUrl(id));
         video.setStatus(VideoStatus.ACTIVE);
         video.setUploadDate(Instant.now());
+        // Identity and counters come from the server, never from client metadata.
         video.setViewCount(0L);
         video.setLikeCount(0);
+        PublicVideoResponseDTO response = mapToResponse(video);
 
-        // Save to active videos database
-        Video saved = videoRepository.save(video);
+        media.upload(id, file, thumbnail);
+        try {
+            videoRepository.saveAndFlush(video);
+        } catch (RuntimeException error) {
+            // The upload succeeded but persistence failed: try to remove this pair only.
+            try {
+                media.delete(id);
+            } catch (RuntimeException cleanupError) {
+                error.addSuppressed(cleanupError);
+            }
+            throw error;
+        }
+        return response;
+    }
 
-        return mapToResponse(saved);
+    private String requireSubject(OidcUser principal) {
+        if (principal == null || principal.getSubject() == null || principal.getSubject().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return principal.getSubject();
+    }
+
+    private void validateUpload(CreateVideoRequestDTO request, MultipartFile file, MultipartFile thumbnail) {
+        if (request == null || request.title() == null || request.title().isBlank()
+                || request.title().strip().length() > 255 || request.duration() == null
+                || request.duration() <= 0 || request.meta() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid video metadata");
+        }
+        validateFile(file, "video/mp4", 100L * 1024 * 1024);
+        validateFile(thumbnail, "image/webp", 5L * 1024 * 1024);
+    }
+
+    private void validateFile(MultipartFile file, String type, long limit) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Both media files are required");
+        }
+        if (!type.equalsIgnoreCase(file.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Expected " + type);
+        }
+        if (file.getSize() > limit) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Media file size limit exceeded");
+        }
+    }
+
+    public void deleteVideo(UUID id, OidcUser principal) {
+        String subject = requireSubject(principal);
+        Video video = videoRepository.findByIdAndChannel_GoogleSubject(id, subject).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found"));
+        if (video.getStatus() == VideoStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Video upload is pending");
+        }
+        if (!media.videoUrl(id).equals(media.resolveUrl(video.getVideoUrl()))
+                || !media.thumbnailUrl(id).equals(media.resolveUrl(video.getThumbnail()))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Video belongs to another storage location or legacy format");
+        }
+        if (video.getStatus() != VideoStatus.REMOVED) {
+            video.setStatus(VideoStatus.REMOVED);
+            video.setRemovedDate(Instant.now());
+            videoRepository.saveAndFlush(video);
+        }
+        // Repository save completes before remote I/O, so the owner can retry a failed DELETE.
+        media.delete(id);
     }
 
     // GET ALL VIDEOS
@@ -140,13 +182,13 @@ public class VideoService {
                 video.getTitle(),
                 video.getDuration(),
                 video.getDescription(),
-                video.getThumbnail(),
+                media.resolveUrl(video.getThumbnail()),
                 video.getChannel().getName(),
                 video.getViewCount(),
                 video.getLikeCount(),
                 video.getCategories(),
                 video.getUploadDate(),
-                video.getVideoUrl()
+                media.resolveUrl(video.getVideoUrl())
         );
     }
 }

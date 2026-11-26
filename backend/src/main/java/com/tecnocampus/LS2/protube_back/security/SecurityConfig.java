@@ -48,7 +48,8 @@ public class SecurityConfig {
                         "/assets/**",
                         "/api/videos",
                         "/api/videos/search/{query}",
-                        "/api/videos/{videoId}"
+                        "/api/videos/{videoId}",
+                        "/api/videos/{videoId}/comments"
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/media/**").permitAll()

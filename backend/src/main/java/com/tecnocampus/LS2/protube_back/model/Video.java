@@ -16,8 +16,7 @@ import java.util.UUID;
 public class Video {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID id = UUID.randomUUID();
 
     @Column(nullable = false)
     private String title;

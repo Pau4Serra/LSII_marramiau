@@ -28,13 +28,17 @@ services:
     depends_on:
       - db
     environment:
-      ENV_PROTUBE_STORE_DIR: /store
       ENV_PROTUBE_DB_HOST: db
       ENV_PROTUBE_DB: ${ENV_PROTUBE_DB:-protube_db}
       ENV_PROTUBE_DB_USER: ${ENV_PROTUBE_DB_USER:-root}
       ENV_PROTUBE_DB_PASS: ${ENV_PROTUBE_DB_PASS:-pwd}
       ENV_PROTUBE_GOOGLE_CLIENT_ID: ${ENV_PROTUBE_GOOGLE_CLIENT_ID:-}
       ENV_PROTUBE_GOOGLE_CLIENT_SECRET: ${ENV_PROTUBE_GOOGLE_CLIENT_SECRET:-}
+      ENV_PROTUBE_MEDIA_MODE: ${ENV_PROTUBE_MEDIA_MODE:-local}
+      ENV_PROTUBE_MEDIA_BASE_URL: ${ENV_PROTUBE_MEDIA_BASE_URL:-https://marramiau-protube.duckdns.org}
+      ENV_PROTUBE_MEDIA_API_KEY: ${ENV_PROTUBE_MEDIA_API_KEY:-}
+      ENV_PROTUBE_LOCAL_MEDIA_DIR: /media-store
+      ENV_PROTUBE_LOCAL_MEDIA_URL: ${ENV_PROTUBE_LOCAL_MEDIA_URL:-http://localhost:8090}
     ports:
       - "8090:8090"
     volumes:
@@ -49,9 +53,8 @@ services:
       # Cache downloaded dependencies between runs.
       - maven_repo:/root/.m2
       - type: bind
-        source: ${ENV_PROTUBE_STORE_DIR:-./store}
-        target: /store
-        read_only: true
+        source: ${ENV_PROTUBE_LOCAL_MEDIA_DIR:-./media-store}
+        target: /media-store
 
   # One-shot tool, not started by `docker compose up` (profile "tools").
   # Run with: docker compose run --rm videograbber

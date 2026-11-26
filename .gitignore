@@ -3,3 +3,9 @@
 backend/.env
 .env
 .run
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+media-store/

@@ -25,8 +25,9 @@ the MVP spec see [REQUIREMENT.md](./REQUIREMENT.md).
 
 ## 1. Generate the video store
 
-The backend reads videos from a *store* folder: one `.mp4` / `.webp` / `.json` triple per video, produced by the
-video grabber. Do this once before running the backend.
+The backend now reads its catalog from the database, not from JSON files.
+The initial SQL seed is pending; a fresh H2 database starts without catalog videos.
+VideoGrabber below is optional and is not needed to run Spring or upload videos.
 
 ```bash
 cd tooling/videoGrabber
@@ -42,8 +43,12 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 
 | Variable                           | Needed for              | Description                                                                                      |
 |------------------------------------|-------------------------|--------------------------------------------------------------------------------------------------|
-| `ENV_PROTUBE_STORE_DIR`            | always                  | Absolute path of the video store folder. **End it with a path separator** (`/` or `\`) — it is used as a `file:` prefix to serve `/media/**`. |
-| `ENV_PROTUBE_STORE_SOURCE`         | optional                | Stable dataset name used to derive public video UUIDs (default: `initial-catalog`). Keep it when moving the store; use a new name for a replacement dataset whose numeric IDs are reused. |
+| `ENV_PROTUBE_MEDIA_MODE`           | optional                | `local` (default) or `oci`, independently of the database profile. |
+| `ENV_PROTUBE_LOCAL_MEDIA_DIR`      | LOCAL                   | Public media folder; defaults to `./media-store`. No trailing separator required. |
+| `ENV_PROTUBE_LOCAL_MEDIA_URL`      | optional                | Local public origin without `/media`; defaults to localhost:8080 in DEV, localhost:8090 in PROD. |
+| `ENV_PROTUBE_MEDIA_BASE_URL`       | OCI                     | Remote HTTPS origin without `/media` or `/api`. |
+| `ENV_PROTUBE_MEDIA_API_KEY`        | OCI                     | Backend-only service secret, never sent to React. |
+| `ENV_PROTUBE_STORE_DIR`            | videoGrabber only       | Source/output folder for the optional tool; not read by Spring. |
 | `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
 | `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
 | `ENV_PROTUBE_FRONTEND_URL`         | optional                | Redirect after Google login. Defaults to `http://localhost:5173/` in dev and `/` in prod.           |
@@ -55,12 +60,14 @@ Never commit real secrets. Set them in your shell, your OS, or your (local, unco
 
 ```bash
 # Linux / macOS
-export ENV_PROTUBE_STORE_DIR=/home/me/protube/videos/
+export ENV_PROTUBE_MEDIA_MODE=local
+export ENV_PROTUBE_LOCAL_MEDIA_DIR=/home/me/protube/media-store
 ```
 
 ```powershell
 # Windows PowerShell (current session)
-$env:ENV_PROTUBE_STORE_DIR = "D:\code\videos\"
+$env:ENV_PROTUBE_MEDIA_MODE = "local"
+$env:ENV_PROTUBE_LOCAL_MEDIA_DIR = "D:\code\media-store"
 ```
 
 ## 3. Development mode
@@ -79,10 +86,10 @@ mvn spring-boot:run
 ```
 
 * Starts on **http://localhost:8080** with the `dev` profile (active by default through the Maven `dev` profile).
-* `dev` uses an in-memory H2 database and loads initial data (`pro_tube.load_initial_data=true`). All data is lost
-  on restart.
+* `dev` uses an in-memory H2 database. The old JSON loader has been removed; SQL seed is pending.
+  Database records are lost on restart, but media files are not automatically deleted.
 * From IntelliJ you can instead use the shared **ProtubeBackApplication** run configuration (`.run/`) — edit its
-  environment variables to point to your own store folder.
+  environment variables to point to your own media folder.
 * CORS is open for `/api/**` and `/auth/**`, so the Vite dev server can call the API directly.
 
 ### Frontend
@@ -145,7 +152,7 @@ single origin (http://localhost:8080). The Maven `prod` profile:
 
 1. Downloads Node/npm into `backend/target/`, runs `npm install` and `npm run build:prod` in `frontend/`.
 2. Copies `frontend/dist/` into the jar's `static/` folder.
-3. Activates the Spring `prod` profile (`pro_tube.load_initial_data=false`, `ddl-auto=update`).
+3. Activates the Spring `prod` profile (PostgreSQL, `ddl-auto=validate`).
 
 `frontend/.env.production` leaves `VITE_API_DOMAIN`/`VITE_MEDIA_DOMAIN` empty, so the built SPA calls the API with
 relative URLs (`/api`, `/media`) on the same host.

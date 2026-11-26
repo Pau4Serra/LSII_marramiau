@@ -43,19 +43,23 @@ public class VideosController {
     public ResponseEntity<PublicVideoResponseDTO> uploadVideo(
             @RequestPart("metadata") CreateVideoRequestDTO metadata,
             @RequestPart("file") MultipartFile file,
+            @RequestPart("thumbnail") MultipartFile thumbnail,
             @AuthenticationPrincipal OidcUser user) {
 
         PublicVideoResponseDTO response = videoService.uploadVideo(
                 metadata,
                 file,
+                thumbnail,
                 user
         );
 
         return ResponseEntity.status(201).body(response);
     }
 
-    @PatchMapping("/{videoId}")
-    public ResponseEntity<String> deleteVideo(@PathVariable String videoId) {
-        return ResponseEntity.ok().body("Video deleted successfully");
+    @DeleteMapping("/{videoId}")
+    public ResponseEntity<Void> deleteVideo(@PathVariable UUID videoId,
+                                           @AuthenticationPrincipal OidcUser user) {
+        videoService.deleteVideo(videoId, user);
+        return ResponseEntity.noContent().build();
     }
 }

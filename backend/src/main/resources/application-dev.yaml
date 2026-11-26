@@ -2,11 +2,6 @@ server:
   port: 8080
 
 pro_tube:
-  media:
-    base-url: ${ENV_PROTUBE_DEV_MEDIA_BASE_URL:http://localhost:${server.port}/media}
-  load_initial_data: true
-  store:
-    dir: ${ENV_PROTUBE_STORE_DIR:}
   auth:
     success-url: ${ENV_PROTUBE_FRONTEND_URL:http://localhost:5173/}
 

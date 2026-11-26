@@ -4,17 +4,19 @@
 
 ### Local video playback
 
-With the backend's `dev` Spring profile, set `ENV_PROTUBE_STORE_DIR` to the
-directory containing the catalog's `.json`, `.mp4` and `.webp` files (matching
-the metadata's `id`). The metadata is imported into H2 and the media files are
-served at `http://localhost:8080/media/<id>.mp4` and `<id>.webp` without login.
-Only MP4 and WebP files are exposed; JSON metadata is not served.
+Set `ENV_PROTUBE_MEDIA_MODE=local` (default) and optionally
+`ENV_PROTUBE_LOCAL_MEDIA_DIR` to the media folder (default `./media-store`).
+New uploads store both files under the video's UUID and are served at
+`/media/<uuid>/video.mp4` and `/media/<uuid>/thumbnail.webp` without login.
+The folder must contain only trusted media. Spring serves only the two fixed
+filenames under UUID-shaped folders; temporary `.upload-*` folders are not public.
 
-The `dev` profile ignores the production variable `ENV_PROTUBE_MEDIA_BASE_URL`,
-so an existing remote URL in `.env` does not disable local playback.
-Use `ENV_PROTUBE_DEV_MEDIA_BASE_URL` only to override the development URL.
-Restart the backend to reimport the catalog after changing this configuration.
-Production continues to use remote storage and does not expose the local directory.
+Storage mode is independent of the `dev`/`prod` database profile. Set mode to
+`oci` to use the remote API, once its coordinated deployment is complete.
+The old JSON loader and flat-file server have been removed. `prepare_dataset.py`
+prepares existing triplets and generates seed SQL; running it on the real dataset
+and wiring SQL startup are still pending, so fresh H2 starts without catalog videos.
+See [media setup](tooling/media/README.md) for configuration and current limits.
 
 The project consists of building a web application where the user can watch and comment on videos uploaded by
 themselves and other registered users.
