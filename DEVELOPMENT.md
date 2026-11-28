@@ -16,6 +16,14 @@ the MVP spec see [REQUIREMENT.md](./REQUIREMENT.md).
 
 ## Prerequisites
 
+For the automatic Compose setup, only Docker and a configured `.env` are needed.
+In LOCAL, first prepare the triplets with videoGrabber and set
+`ENV_PROTUBE_STORE_DIR` to that folder. Then use `docker compose up`.
+`SPRING_PROFILES_ACTIVE=prod` selects PostgreSQL (8090); `dev` selects H2 (8080).
+The same backend builds and serves React. No Python preparation is needed.
+
+The dependencies below are for running tools directly outside Compose:
+
 * **Java 21** (JDK; CI uses Amazon Corretto 21).
 * **Maven 3.9+**. The Maven wrapper (`mvnw`) is **not** committed; either use your local `mvn`, or generate the
   wrapper once inside `backend/` with `mvn -N wrapper:wrapper` (CI does the equivalent). The commands below use
@@ -26,8 +34,9 @@ the MVP spec see [REQUIREMENT.md](./REQUIREMENT.md).
 ## 1. Generate the video store
 
 The backend now reads its catalog from the database, not from JSON files.
-The initial SQL seed is pending; a fresh H2 database starts without catalog videos.
-VideoGrabber below is optional and is not needed to run Spring or upload videos.
+Spring seeds the catalog from `db/seed/data-local.sql` or `data-oci.sql`.
+LOCAL reads the original numbered MP4/WEBP files directly; OCI uses UUID paths.
+VideoGrabber below prepares the LOCAL source; it is not run again at app startup.
 
 ```bash
 cd tooling/videoGrabber
@@ -44,16 +53,14 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 | Variable                           | Needed for              | Description                                                                                      |
 |------------------------------------|-------------------------|--------------------------------------------------------------------------------------------------|
 | `ENV_PROTUBE_MEDIA_MODE`           | optional                | `local` (default) or `oci`, independently of the database profile. |
-| `ENV_PROTUBE_LOCAL_MEDIA_DIR`      | LOCAL                   | Public media folder; defaults to `./media-store`. No trailing separator required. |
-| `ENV_PROTUBE_LOCAL_MEDIA_URL`      | optional                | Local public origin without `/media`; defaults to localhost:8080 in DEV, localhost:8090 in PROD. |
 | `ENV_PROTUBE_MEDIA_BASE_URL`       | OCI                     | Remote HTTPS origin without `/media` or `/api`. |
 | `ENV_PROTUBE_MEDIA_API_KEY`        | OCI                     | Backend-only service secret, never sent to React. |
-| `ENV_PROTUBE_STORE_DIR`            | videoGrabber only       | Source/output folder for the optional tool; not read by Spring. |
+| `ENV_PROTUBE_STORE_DIR`            | LOCAL                   | Original videoGrabber folder. Read directly; new uploads create UUID subfolders. |
 | `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
 | `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
 | `ENV_PROTUBE_FRONTEND_URL`         | optional                | Redirect after Google login. Defaults to `http://localhost:5173/` in dev and `/` in prod.           |
-| `ENV_PROTUBE_DB_USER`              | `prod` profile          | Database user (use `sa` with the default H2 datasource)                                          |
-| `ENV_PROTUBE_DB_PWD`               | `prod` profile          | Database password (empty with the default H2 datasource)                                         |
+| `ENV_PROTUBE_DB_USER`              | `prod` profile          | PostgreSQL user; defaults to `root` in Compose. |
+| `ENV_PROTUBE_DB_PASS`              | `prod` profile          | PostgreSQL password; configure it before deployment. |
 | `ENV_PROTUBE_DB`                   | `prod` + PostgreSQL     | PostgreSQL database name (see [Using PostgreSQL](#using-postgresql))                              |
 
 Never commit real secrets. Set them in your shell, your OS, or your (local, uncommitted) IDE run configuration.
@@ -61,13 +68,13 @@ Never commit real secrets. Set them in your shell, your OS, or your (local, unco
 ```bash
 # Linux / macOS
 export ENV_PROTUBE_MEDIA_MODE=local
-export ENV_PROTUBE_LOCAL_MEDIA_DIR=/home/me/protube/media-store
+export ENV_PROTUBE_STORE_DIR=/home/me/protube/videos
 ```
 
 ```powershell
 # Windows PowerShell (current session)
 $env:ENV_PROTUBE_MEDIA_MODE = "local"
-$env:ENV_PROTUBE_LOCAL_MEDIA_DIR = "D:\code\media-store"
+$env:ENV_PROTUBE_STORE_DIR = "D:\code\videos"
 ```
 
 ## 3. Development mode
@@ -86,7 +93,7 @@ mvn spring-boot:run
 ```
 
 * Starts on **http://localhost:8080** with the `dev` profile (active by default through the Maven `dev` profile).
-* `dev` uses an in-memory H2 database. The old JSON loader has been removed; SQL seed is pending.
+* `dev` uses an in-memory H2 database. Spring executes the seed SQL after Hibernate creates the tables.
   Database records are lost on restart, but media files are not automatically deleted.
 * From IntelliJ you can instead use the shared **ProtubeBackApplication** run configuration (`.run/`) — edit its
   environment variables to point to your own media folder.
@@ -148,7 +155,7 @@ Before opening a PR, run the same steps locally so the pipeline stays green.
 ## 5. Production mode
 
 In production the frontend is bundled **inside** the backend jar and everything is served by Spring Boot from a
-single origin (http://localhost:8080). The Maven `prod` profile:
+single origin (http://localhost:8090). The Maven `prod` profile:
 
 1. Downloads Node/npm into `backend/target/`, runs `npm install` and `npm run build:prod` in `frontend/`.
 2. Copies `frontend/dist/` into the jar's `static/` folder.
@@ -175,20 +182,17 @@ java -jar target/protube-back-0.0.1-SNAPSHOT.jar
 ```
 
 (IntelliJ: the **Create jar** run configuration runs `package` with the `prod` profile.) Remember that
-`ENV_PROTUBE_STORE_DIR`, `ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PWD` must be set in the environment where the jar
+`ENV_PROTUBE_STORE_DIR`, `ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PASS` must be set in the environment where the jar
 runs.
 
 To only preview the production frontend bundle, without the backend: `cd frontend && npm run build:prod && npm run preview`.
 
 ### Using PostgreSQL
 
-The `prod` profile still points to an in-memory H2 database, which is only a placeholder — the MVP requires a real
-database (NFR-01 in [REQUIREMENT.md](./REQUIREMENT.md)). The PostgreSQL driver is already a dependency. To switch:
-
-1. Start a PostgreSQL server (e.g. `docker run -d --name protube-db -p 5432:5432 -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=protube postgres:16`).
-2. In `backend/src/main/resources/application.properties`, in the `prod` section, uncomment the PostgreSQL
-   `spring.datasource.url` line and remove the H2 one.
-3. Set `ENV_PROTUBE_DB` (e.g. `protube`), `ENV_PROTUBE_DB_USER` (e.g. `postgres`) and `ENV_PROTUBE_DB_PWD`.
+The `prod` profile uses PostgreSQL. Compose starts it and sets the backend's DB
+host to `db`; direct IDE runs use `ENV_PROTUBE_DB_HOST=localhost`.
+Flyway applies migrations inside Spring, then Spring loads the selected SQL.
+Existing rows are preserved; changing storage mode does not rewrite existing data.
 
 ## 6. Workflow reminders
 
@@ -204,8 +208,9 @@ database (NFR-01 in [REQUIREMENT.md](./REQUIREMENT.md)). The PostgreSQL driver i
 * **`Could not resolve placeholder 'ENV_PROTUBE_STORE_DIR'`** (or `ENV_PROTUBE_DB_USER`, ...): the variable isn't
   set in the environment of the process running the app. IDEs usually need a restart to pick up new OS-level
   variables.
-* **Videos list loads but thumbnails/videos 404**: check that `ENV_PROTUBE_STORE_DIR` ends with a path separator and
-  points to the folder containing the `.mp4`/`.webp` files.
+* **Videos list loads but thumbnails/videos 404**: check that `ENV_PROTUBE_STORE_DIR`
+  contains the numbered `.mp4`/`.webp` files corresponding to the initial SQL dataset.
+  No trailing separator is required. OCI files must already exist remotely.
 * **Frontend can't reach the API in dev**: make sure the backend is running on port 8080, or adjust
   `VITE_API_DOMAIN` in `.env.development.local`.
 * **Port already in use**: change `server.port` (backend) or run `npm run dev -- --port 5174` (frontend).

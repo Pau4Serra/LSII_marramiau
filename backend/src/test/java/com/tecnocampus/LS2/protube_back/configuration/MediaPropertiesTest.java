@@ -28,10 +28,10 @@ class MediaPropertiesTest {
     }
 
     @Test
-    void localOriginCanBeOverriddenIndependently() {
-        runner.withPropertyValues("spring.profiles.active=dev", "ENV_PROTUBE_LOCAL_MEDIA_URL=http://127.0.0.1:8080")
-                .run(context -> assertThat(context.getEnvironment().getRequiredProperty("pro_tube.media.local.base-url"))
-                        .isEqualTo("http://127.0.0.1:8080"));
+    void localStorageUsesTheProfessorsFolder() {
+        runner.withPropertyValues("spring.profiles.active=dev", "ENV_PROTUBE_STORE_DIR=C:/videos")
+                .run(context -> assertThat(context.getEnvironment().getRequiredProperty("pro_tube.media.local.directory"))
+                        .isEqualTo("C:/videos"));
     }
 
     @Test

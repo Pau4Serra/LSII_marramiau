@@ -2,6 +2,8 @@ package com.tecnocampus.LS2.protube_back;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.core.io.ClassPathResource;
@@ -61,5 +63,21 @@ class SeedSqlTest {
         assertEquals("Edited channel", jdbc.queryForObject("SELECT name FROM users WHERE id = ?", String.class, CHANNEL));
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM video_categories WHERE video_id = ?", Integer.class, VIDEO));
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM comment WHERE video_id = ?", Integer.class, VIDEO));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"local", "oci"})
+    void deliveredCatalogIsValidAndIdempotent(String mode) {
+        var populator = new ResourceDatabasePopulator(new ClassPathResource("db/seed/data-" + mode + ".sql"));
+        populator.setSqlScriptEncoding("UTF-8");
+        populator.execute(dataSource);
+        populator.execute(dataSource);
+        assertEquals(101, jdbc.queryForObject("SELECT COUNT(*) FROM video", Integer.class));
+        assertEquals(81, jdbc.queryForObject("SELECT COUNT(*) FROM users", Integer.class));
+        assertEquals(760, jdbc.queryForObject("SELECT COUNT(*) FROM comment", Integer.class));
+        String url = jdbc.queryForObject("SELECT video_url FROM video WHERE id = ?", String.class,
+                UUID.fromString("1aed15ac-1668-5976-9a11-656b42af74a9"));
+        assertEquals(mode.equals("local") ? "/media/0.mp4"
+                : "/media/1aed15ac-1668-5976-9a11-656b42af74a9/video.mp4", url);
     }
 }

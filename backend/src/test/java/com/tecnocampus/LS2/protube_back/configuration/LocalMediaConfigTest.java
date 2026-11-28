@@ -44,6 +44,9 @@ class LocalMediaConfigTest {
         Files.write(target.resolve("thumbnail.webp"), new byte[]{6, 7, 8});
         Files.writeString(target.resolve("metadata.json"), "private");
         Files.write(target.resolve("other.mp4"), new byte[]{9});
+        Files.write(root.resolve("media/0.mp4"), new byte[]{0, 1, 2, 3, 4, 5});
+        Files.write(root.resolve("media/0.webp"), new byte[]{6, 7, 8});
+        Files.writeString(root.resolve("media/0.json"), "private");
         Path staging = Files.createDirectories(root.resolve("media/.upload-test"));
         Files.write(staging.resolve("video.mp4"), new byte[]{9});
         Path invalid = Files.createDirectories(root.resolve("media/not-an-id"));
@@ -65,6 +68,14 @@ class LocalMediaConfigTest {
                 .andExpect(content().bytes(new byte[]{2, 3, 4}));
         mvc.perform(head("/media/" + ID + "/video.mp4"))
                 .andExpect(status().isOk()).andExpect(content().string(""));
+    }
+
+    @Test
+    void servesOriginalVideoGrabberFilesWithoutExposingJson() throws Exception {
+        mvc.perform(get("/media/0.mp4").header("Range", "bytes=2-4"))
+                .andExpect(status().isPartialContent()).andExpect(content().bytes(new byte[]{2, 3, 4}));
+        mvc.perform(get("/media/0.webp")).andExpect(status().isOk());
+        mvc.perform(get("/media/0.json")).andExpect(status().isNotFound());
     }
 
     @Test

@@ -2,21 +2,29 @@
 
 ## Project
 
-### Local video playback
+### Run with Docker Compose
 
-Set `ENV_PROTUBE_MEDIA_MODE=local` (default) and optionally
-`ENV_PROTUBE_LOCAL_MEDIA_DIR` to the media folder (default `./media-store`).
-New uploads store both files under the video's UUID and are served at
-`/media/<uuid>/video.mp4` and `/media/<uuid>/thumbnail.webp` without login.
-The folder must contain only trusted media. Spring serves only the two fixed
-filenames under UUID-shaped folders; temporary `.upload-*` folders are not public.
+Configure `.env` from `.env.example` (including Google OAuth credentials).
+For LOCAL, run videoGrabber beforehand and set `ENV_PROTUBE_STORE_DIR` to its
+JSON/MP4/WEBP folder. Spring reads the original media and seeds the database;
+no manual Python, Maven or npm commands are required.
 
-Storage mode is independent of the `dev`/`prod` database profile. Set mode to
-`oci` to use the remote API, once its coordinated deployment is complete.
-The old JSON loader and flat-file server have been removed. `prepare_dataset.py`
-prepares existing triplets and generates seed SQL; running it on the real dataset
-and wiring SQL startup are still pending, so fresh H2 starts without catalog videos.
-See [media setup](tooling/media/README.md) for configuration and current limits.
+```bash
+docker compose up
+```
+
+There are only two services: PostgreSQL and the backend, which builds and serves
+React. `SPRING_PROFILES_ACTIVE=prod` (default) uses PostgreSQL on localhost:8090;
+`dev` uses H2 on localhost:8080, also with bundled React.
+Set `ENV_PROTUBE_MEDIA_MODE=oci` to use the prepared SQL catalog and media already
+published in OCI instead of a local source folder. Storage mode is independent
+of the database profile. Initial OCI media must be published once by the project
+administrator; Compose does not upload to or clean the remote server.
+The included SQL represents the fixed initial dataset of 101 videos; LOCAL expects
+the same numbered files from videoGrabber. Arbitrary JSON datasets are not imported.
+OCI playback is not delivery-ready: the checked initial MP4/WEBP return 404;
+publishing the dataset and activating the remote API remain administrator tasks.
+Never use `docker compose down -v` on data you want to keep.
 
 The project consists of building a web application where the user can watch and comment on videos uploaded by
 themselves and other registered users.

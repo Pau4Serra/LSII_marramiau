@@ -22,9 +22,10 @@ public class LocalMediaConfig implements WebMvcConfigurer {
             return;
         }
         String location = local.directory().toUri().toString();
-        // Only UUID-shaped folders are public; .upload-* temporaries never match.
+        // Initial videoGrabber files plus new uploads; JSON and staging stay private.
         registry.addResourceHandler("/media/{id:[0-9a-f-]{36}}/video.mp4",
-                        "/media/{id:[0-9a-f-]{36}}/thumbnail.webp")
+                        "/media/{id:[0-9a-f-]{36}}/thumbnail.webp",
+                        "/media/{id:[0-9]+}.mp4", "/media/{id:[0-9]+}.webp")
                 .addResourceLocations(location.endsWith("/") ? location : location + "/");
     }
 }

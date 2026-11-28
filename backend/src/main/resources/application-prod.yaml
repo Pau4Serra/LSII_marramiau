@@ -2,6 +2,11 @@ server:
   port: 8090
 
 spring:
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:db/seed/data-${pro_tube.media.mode}.sql
+      encoding: UTF-8
   datasource:
     url: "jdbc:postgresql://${ENV_PROTUBE_DB_HOST}:5432/${ENV_PROTUBE_DB}"
     username: "${ENV_PROTUBE_DB_USER}"

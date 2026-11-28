@@ -19,8 +19,11 @@ spring:
       minimum-idle: 5
   sql:
     init:
-      platform: h2
+      mode: always
+      data-locations: classpath:db/seed/data-${pro_tube.media.mode}.sql
+      encoding: UTF-8
   jpa:
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect

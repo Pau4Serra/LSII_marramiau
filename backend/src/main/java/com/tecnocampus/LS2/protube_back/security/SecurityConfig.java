@@ -38,7 +38,8 @@ public class SecurityConfig {
                         "/public/**",
                         "/api/auth/login",
                         "/h2-console",
-                        "/h2-console/**"
+                        "/h2-console/**",
+                        "/api/videos"
                 ).permitAll()
                 .requestMatchers(
                         HttpMethod.GET,
@@ -46,7 +47,8 @@ public class SecurityConfig {
                         "/docs/",
                         "/index.html",
                         "/assets/**",
-                        "/api/videos",
+                        "/videos/{videoId}",
+                        "/profile",
                         "/api/videos/search/{query}",
                         "/api/videos/{videoId}",
                         "/api/videos/{videoId}/comments"

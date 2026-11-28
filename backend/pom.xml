@@ -29,6 +29,7 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <buildDirectory>${project.basedir}/target</buildDirectory>
         <frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version>
         <node.version>v22.12.0</node.version>
         <npm.version>9.2.0</npm.version>
@@ -162,6 +163,17 @@
                             </excludes>
                         </configuration>
                     </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+        </profile>
+        <!-- Explicitly enabled by Compose; local dev/prod only start Spring. -->
+        <profile>
+            <id>frontend</id>
+            <build>
+                <plugins>
                     <plugin>
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
@@ -228,12 +240,10 @@
 
                 </plugins>
             </build>
-            <properties>
-                <spring.profiles.active>prod</spring.profiles.active>
-            </properties>
         </profile>
     </profiles>
     <build>
+        <directory>${buildDirectory}</directory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -29,11 +29,11 @@ spring:
 
 pro_tube:
   auth:
-    success-url: ${ENV_PROTUBE_FRONTEND_URL:/}
+    success-url: ${ENV_PROTUBE_FRONTEND_URL:http://localhost:5173/}
   media:
     mode: ${ENV_PROTUBE_MEDIA_MODE:local}
     base-url: ${ENV_PROTUBE_MEDIA_BASE_URL:https://marramiau-protube.duckdns.org}
     api-key: ${ENV_PROTUBE_MEDIA_API_KEY:}
     local:
-      directory: ${ENV_PROTUBE_LOCAL_MEDIA_DIR:./media-store}
-      base-url: ${ENV_PROTUBE_LOCAL_MEDIA_URL:http://localhost:${server.port:8080}}
+      directory: ${ENV_PROTUBE_STORE_DIR:./store}
+      base-url: http://localhost:${server.port:8080}
